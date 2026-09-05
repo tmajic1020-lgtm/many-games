@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#120e0b">
+<title>BREAD CLICKER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127838;</text></svg>">
+<style>
+/* ============================================================
+   BREAD CLICKER — a modern idle clicker. Single file, no deps.
+   ============================================================ */
+@property --lw { syntax:'<length>'; inherits:true; initial-value:340px }
+@property --rw { syntax:'<length>'; inherits:true; initial-value:372px }
+@property --th { syntax:'<length>'; inherits:true; initial-value:38vh }
+@property --bh { syntax:'<length>'; inherits:true; initial-value:42vh }
+
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --lw:340px; --rw:372px; --th:38vh; --bh:42vh;
+  --bg:#120e0b; --bg2:#1c1511;
+  --panel:rgba(255,244,230,.045);
+  --panel2:rgba(255,244,230,.075);
+  --panel3:rgba(255,244,230,.11);
+  --line:rgba(255,214,160,.12);
+  --line2:rgba(255,214,160,.22);
+  --txt:#f6ead9; --dim:#b39e86; --dim2:#8a7663;
+  --gold:#ffc463; --gold2:#ff9640; --amber:#ffab4d;
+  --good:#82e29a; --bad:#ff7a6b; --violet:#b98bff;
+  --r:14px; --r2:10px;
+  --shadow:0 18px 40px -18px rgba(0,0,0,.85);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --ease2:cubic-bezier(.65,.05,.36,1);
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{
+  margin:0; font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color:var(--txt); background:var(--bg);
+  overflow:hidden; -webkit-tap-highlight-color:transparent;
+  font-synthesis:none; text-rendering:optimizeLegibility;
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(1100px 700px at 50% -10%, rgba(255,164,72,.16), transparent 60%),
+    radial-gradient(800px 600px at 8% 100%, rgba(255,120,60,.10), transparent 60%),
+    radial-gradient(900px 700px at 100% 90%, rgba(190,120,255,.07), transparent 60%),
+    linear-gradient(180deg,#150f0b,#0e0a08 70%);
+}
+body::after{ /* subtle film grain */
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:1; opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+::selection{background:rgba(255,196,99,.32)}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+/* scrollbars */
+.scroll{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(255,196,99,.28) transparent}
+.scroll::-webkit-scrollbar{width:9px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+.scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(255,196,99,.34),rgba(255,150,64,.24));border-radius:99px;border:2px solid transparent;background-clip:padding-box}
+.scroll::-webkit-scrollbar-thumb:hover{background:rgba(255,196,99,.5);background-clip:padding-box;border:2px solid transparent}
+
+/* ============================ layout ============================ */
+#app{
+  position:relative; z-index:2;
+  height:100dvh; display:grid;
+  grid-template-columns:var(--lw) minmax(0,1fr) var(--rw);
+  transition:--lw .5s var(--ease2), --rw .5s var(--ease2), grid-template-columns .5s var(--ease2);
+}
+#app.l-closed{--lw:0px}
+#app.r-closed{--rw:0px}
+.sidebar{position:relative; overflow:hidden; z-index:5}
+.side-inner{
+  position:absolute; inset:0 auto 0 0; width:340px; display:flex; flex-direction:column;
+  background:linear-gradient(180deg,rgba(32,24,18,.82),rgba(20,15,11,.9));
+  backdrop-filter:blur(22px) saturate(1.2); -webkit-backdrop-filter:blur(22px) saturate(1.2);
+  transition:transform .5s var(--ease2), opacity .4s var(--ease2);
+  will-change:transform;
+}
+.left .side-inner{border-right:1px solid var(--line); box-shadow:14px 0 40px -26px #000}
+.right .side-inner{inset:0 0 0 auto; width:372px; border-left:1px solid var(--line); box-shadow:-14px 0 40px -26px #000}
+#app.l-closed .left .side-inner{transform:translateX(-101%); opacity:.2}
+#app.r-closed .right .side-inner{transform:translateX(101%); opacity:.2}
+
+.side-head{
+  display:flex; align-items:center; gap:10px; padding:14px 14px 10px; flex:0 0 auto;
+}
+.side-head h2{
+  margin:0; font-size:13px; letter-spacing:.19em; font-weight:800; text-transform:uppercase;
+  color:var(--dim); flex:1 1 auto; white-space:nowrap;
+}
+.side-head h2 b{color:var(--gold); font-weight:800}
+.icon-btn{
+  display:grid; place-items:center; width:30px; height:30px; flex:0 0 auto;
+  border-radius:9px; border:1px solid var(--line); background:var(--panel);
+  color:var(--dim); cursor:pointer; transition:.22s var(--ease);
+}
+.icon-btn:hover{background:var(--panel3); color:var(--gold); border-color:var(--line2); transform:translateY(-1px)}
+.icon-btn:active{transform:scale(.92)}
+.icon-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* tabs */
+.tabs{display:flex; gap:6px; padding:0 12px 10px; flex:0 0 auto; position:relative}
+.tab{
+  flex:1 1 auto; min-width:0; position:relative; padding:9px 7px 10px; border:0; cursor:pointer;
+  background:transparent; color:var(--dim2); font-family:inherit; font-weight:700;
+  font-size:10px; letter-spacing:.05em; text-transform:uppercase; border-radius:10px;
+  transition:color .25s var(--ease), background .25s var(--ease);
+  display:flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap; overflow:hidden;
+}
+.tab:hover{color:var(--txt); background:var(--panel)}
+.tab.on{color:#22160c}
+.tab .tab-bg{
+  position:absolute; inset:0; border-radius:10px; z-index:-1;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  opacity:0; transform:scale(.86); transition:.35s var(--ease);
+}
+.tab.on .tab-bg{opacity:1; transform:scale(1)}
+#rightTabs .tab{flex:1 1 0; font-size:11px; letter-spacing:.12em}
+.tabs{gap:5px}
+.tab .cnt{flex:0 0 auto}
+.tab .cnt{
+  font-size:10px; padding:1px 5px; border-radius:99px; background:var(--panel3); color:var(--dim);
+  transition:.25s var(--ease);
+}
+.tab.on .cnt{background:rgba(30,18,8,.28); color:#3a2410}
+.panes{position:relative; flex:1 1 auto; min-height:0}
+.pane{
+  position:absolute; inset:0; padding:0 12px 16px; opacity:0; visibility:hidden;
+  transform:translateY(10px) scale(.99); transition:opacity .3s var(--ease), transform .35s var(--ease), visibility .35s;
+}
+.pane.on{opacity:1; visibility:visible; transform:none}
+
+/* ======================== center stage ========================= */
+#center{position:relative; display:flex; flex-direction:column; align-items:center; min-width:0; overflow:hidden}
+.stage-glow{
+  position:absolute; left:50%; top:46%; width:min(78vh,760px); aspect-ratio:1; translate:-50% -50%;
+  background:radial-gradient(circle, rgba(255,176,80,.20), rgba(255,140,60,.07) 42%, transparent 68%);
+  pointer-events:none; animation:breathe 7s ease-in-out infinite;
+}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.09);opacity:1}}
+
+.topbar{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 18px 0; flex:0 0 auto; z-index:3;
+}
+.brand{display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.16em; font-size:14px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold);animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+.brand span{background:linear-gradient(100deg,#fff0d6,var(--gold) 45%,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.topchips{display:flex; gap:8px; align-items:center}
+.chip{
+  display:flex; align-items:center; gap:7px; padding:6px 11px; border-radius:99px;
+  border:1px solid var(--line); background:var(--panel); font-size:12px; color:var(--dim);
+  font-weight:600; white-space:nowrap;
+}
+.chip b{color:var(--txt); font-weight:700}
+.chip.buff{border-color:rgba(255,196,99,.5); background:linear-gradient(120deg,rgba(255,196,99,.18),rgba(255,150,64,.10)); color:var(--gold); animation:buffGlow 1.4s ease-in-out infinite}
+@keyframes buffGlow{0%,100%{box-shadow:0 0 0 rgba(255,196,99,0)}50%{box-shadow:0 0 18px rgba(255,196,99,.4)}}
+
+.counter{ text-align:center; padding:10px 10px 0; z-index:3; flex:0 0 auto }
+.counter .amount{
+  display:block; font-weight:800; letter-spacing:-.02em; line-height:1;
+  font-size:clamp(34px,6.4vw,68px);
+  background:linear-gradient(180deg,#fff6e6,var(--gold) 62%,var(--gold2));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 6px 22px rgba(255,150,60,.28));
+  transition:transform .12s var(--ease);
+}
+.counter .amount.bump{transform:scale(1.045)}
+.counter .unit{
+  display:block; margin-top:4px; font-size:12px; letter-spacing:.34em; font-weight:700; color:var(--dim);
+}
+.counter .rate{margin-top:8px; font-size:14px; color:var(--dim); font-weight:500}
+.counter .rate b{color:var(--amber); font-weight:700}
+
+/* bread */
+.bread-wrap{
+  position:relative; flex:1 1 auto; width:100%; display:grid; place-items:center; min-height:0; z-index:2;
+}
+#breadBtn{
+  position:relative; width:min(42vh,min(60vw,420px)); aspect-ratio:1; border:0; padding:0; background:none;
+  cursor:pointer; display:grid; place-items:center; touch-action:manipulation; user-select:none;
+  filter:drop-shadow(0 26px 34px rgba(0,0,0,.55));
+  transition:filter .3s var(--ease);
+}
+#breadBtn:hover{filter:drop-shadow(0 30px 40px rgba(0,0,0,.6)) drop-shadow(0 0 30px rgba(255,170,70,.28))}
+#breadBtn svg{width:100%;height:100%;overflow:visible;pointer-events:none}
+#breadBtn .idle{animation:float 5.5s ease-in-out infinite; transform-origin:50% 60%}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-.6deg)}50%{transform:translateY(-13px) rotate(.6deg)}}
+.ring{
+  position:absolute; left:50%; top:50%; width:64%; aspect-ratio:1; translate:-50% -50%;
+  border-radius:50%; border:2px solid rgba(255,196,99,.7); pointer-events:none; opacity:0;
+}
+.crumb{position:absolute; pointer-events:none; border-radius:2px; will-change:transform,opacity}
+.float-num{
+  position:absolute; pointer-events:none; font-weight:800; font-size:20px; color:var(--gold);
+  text-shadow:0 3px 12px rgba(0,0,0,.7); white-space:nowrap; z-index:9;
+}
+.float-num.crit{color:#fff2cf; font-size:27px; text-shadow:0 0 18px var(--gold2)}
+
+.center-foot{
+  flex:0 0 auto; padding:6px 16px 16px; display:flex; gap:8px; align-items:center; justify-content:center;
+  flex-wrap:wrap; z-index:3;
+}
+.hint{font-size:12px;color:var(--dim2);letter-spacing:.04em}
+
+/* edge toggles */
+.edge{
+  position:absolute; top:50%; translate:0 -50%; z-index:12; width:22px; height:78px;
+  display:grid; place-items:center; cursor:pointer; border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(42,31,23,.9),rgba(26,19,14,.9)); color:var(--dim);
+  transition:.28s var(--ease); backdrop-filter:blur(8px);
+}
+.edge:hover{color:var(--gold); background:rgba(58,42,30,.95); width:26px}
+.edge.l{left:0; border-radius:0 12px 12px 0; border-left:0}
+.edge.r{right:0; border-radius:12px 0 0 12px; border-right:0}
+.edge svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .4s var(--ease)}
+#app.l-closed .edge.l svg{transform:rotate(180deg)}
+#app.r-closed .edge.r svg{transform:rotate(180deg)}
+
+/* ======================= upgrade shelf ========================= */
+.shelf{
+  flex:0 0 auto; padding:2px 12px 12px; border-bottom:1px solid var(--line);
+  margin-bottom:10px;
+}
+.shelf-head{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim2);
+  font-weight:800; margin:0 2px 8px;
+}
+.shelf-head .n{color:var(--gold)}
+.shelf-grid{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(46px,1fr)); gap:7px;
+  max-height:172px; overflow-y:auto; padding:2px;
+}
+.up{
+  position:relative; aspect-ratio:1; border-radius:12px; cursor:pointer; border:1px solid var(--line2);
+  background:linear-gradient(150deg,rgba(255,205,130,.16),rgba(255,140,60,.07));
+  display:grid; place-items:center; font-size:21px; line-height:1;
+  transition:transform .25s var(--ease), box-shadow .25s var(--ease), filter .25s var(--ease), opacity .3s;
+  animation:upIn .45s var(--ease) backwards;
+}
+@keyframes upIn{from{opacity:0;transform:scale(.4) rotate(-18deg)}to{opacity:1;transform:none}}
+.up::after{
+  content:''; position:absolute; inset:0; border-radius:12px; pointer-events:none;
+  background:linear-gradient(140deg,rgba(255,255,255,.28),transparent 46%); opacity:.5;
+}
+.up:hover{transform:translateY(-4px) scale(1.09); box-shadow:0 10px 22px -8px rgba(255,150,60,.6); z-index:4}
+.up:active{transform:scale(.94)}
+.up.locked{filter:grayscale(.85) brightness(.55); border-color:var(--line); cursor:not-allowed}
+.up.locked:hover{transform:translateY(-2px) scale(1.03); box-shadow:none}
+.up.tier-click{background:linear-gradient(150deg,rgba(255,190,110,.22),rgba(255,110,60,.10))}
+.up.tier-tower{background:linear-gradient(150deg,rgba(160,220,255,.16),rgba(70,140,255,.08))}
+.up.tier-global{background:linear-gradient(150deg,rgba(200,150,255,.20),rgba(140,80,255,.09))}
+.up.tier-ach{background:linear-gradient(150deg,rgba(150,255,190,.18),rgba(60,200,130,.08))}
+.up.buying{animation:pop .4s var(--ease) forwards}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.32) rotate(8deg);filter:brightness(2)}100%{transform:scale(0) rotate(30deg);opacity:0}}
+
+/* ========================= buildings =========================== */
+.blist{display:flex; flex-direction:column; gap:8px; padding:2px 2px 10px}
+.buyrow{display:flex; gap:6px; align-items:center; padding:2px 2px 10px}
+.buyrow .lbl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);font-weight:800;margin-right:auto}
+.seg{display:flex; gap:3px; padding:3px; background:var(--panel); border:1px solid var(--line); border-radius:10px}
+.seg button{
+  border:0; background:transparent; color:var(--dim); font-family:inherit; font-weight:800; font-size:11px;
+  padding:4px 9px; border-radius:7px; cursor:pointer; transition:.22s var(--ease);
+}
+.seg button:hover{color:var(--txt)}
+.seg button.on{background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#25170a}
+
+.bld{
+  position:relative; border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
+  background:linear-gradient(120deg,rgba(255,240,220,.05),rgba(255,240,220,.02));
+  transition:border-color .25s var(--ease), background .25s var(--ease), transform .25s var(--ease);
+  animation:upIn .4s var(--ease) backwards;
+}
+.bld:hover{border-color:var(--line2); background:var(--panel2)}
+.bld.afford{border-color:rgba(255,196,99,.34)}
+.bld.afford .bcost{color:var(--good)}
+.bld.poor .bcost{color:var(--bad)}
+.bld.maxed{opacity:1}
+.brow{display:flex; align-items:center; gap:10px; padding:9px 10px; cursor:pointer; user-select:none}
+.bicon{
+  flex:0 0 auto; width:42px; height:42px; border-radius:11px; display:grid; place-items:center; font-size:22px;
+  background:radial-gradient(circle at 32% 28%, rgba(255,220,170,.24), rgba(255,140,60,.07));
+  border:1px solid var(--line); position:relative; transition:transform .3s var(--ease);
+  filter:grayscale(.6) brightness(.85);
+}
+.bld.owned .bicon{filter:none}
+.brow:hover .bicon{transform:scale(1.08) rotate(-4deg)}
+.bmain{flex:1 1 auto; min-width:0}
+.bname{display:flex; align-items:center; gap:6px; font-weight:700; font-size:14px; letter-spacing:.01em}
+.bname .pz{
+  font-size:9.5px; font-weight:900; letter-spacing:.08em; padding:1.5px 6px; border-radius:99px;
+  background:linear-gradient(135deg,var(--violet),#ff7ad9); color:#1a1020;
+}
+.bsub{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--dim2); margin-top:2px}
+.bcost{font-weight:700; color:var(--dim)}
+.bcost .b{font-size:10px; opacity:.7}
+.bright{flex:0 0 auto; display:flex; align-items:center; gap:8px}
+.bcount{
+  font-size:22px; font-weight:800; color:rgba(255,214,160,.28); line-height:1; min-width:26px; text-align:right;
+  transition:color .25s, transform .25s var(--ease);
+}
+.bld.owned .bcount{color:rgba(255,214,160,.75)}
+.bcount.tick{transform:scale(1.28); color:var(--gold)}
+.bchev{
+  width:22px;height:22px;display:grid;place-items:center;border-radius:7px;color:var(--dim2);
+  transition:.3s var(--ease); border:1px solid transparent;
+}
+.bchev:hover{background:var(--panel3); color:var(--gold)}
+.bld.open .bchev{transform:rotate(180deg); color:var(--gold)}
+.bchev svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.bdetail{
+  display:grid; grid-template-rows:0fr; transition:grid-template-rows .42s var(--ease);
+}
+.bld.open .bdetail{grid-template-rows:1fr}
+.bdetail-in{overflow:hidden; min-height:0}
+.bdetail-pad{padding:2px 10px 11px; border-top:1px dashed var(--line); margin-top:2px}
+.lvline{display:flex; align-items:center; justify-content:space-between; font-size:11px; color:var(--dim2); margin:8px 0 5px; font-weight:600}
+.lvline b{color:var(--txt)}
+.bar{height:7px; border-radius:99px; background:rgba(0,0,0,.35); overflow:hidden; border:1px solid var(--line)}
+.bar i{
+  display:block; height:100%; border-radius:99px; width:0%;
+  background:linear-gradient(90deg,var(--gold2),var(--gold)); transition:width .45s var(--ease);
+  box-shadow:0 0 12px rgba(255,180,80,.55);
+}
+.bld.ready .bar i{background:linear-gradient(90deg,var(--violet),#ff7ad9); box-shadow:0 0 14px rgba(185,139,255,.6)}
+.btnrow{display:flex; gap:7px; margin-top:9px}
+.abtn{
+  flex:1 1 0; min-width:0; border:1px solid var(--line2); border-radius:11px; cursor:pointer;
+  background:linear-gradient(135deg,rgba(255,196,99,.20),rgba(255,150,64,.10));
+  color:var(--txt); font-family:inherit; padding:8px 9px; text-align:left; transition:.25s var(--ease);
+  position:relative; overflow:hidden;
+}
+.abtn:hover:not(:disabled){transform:translateY(-2px); background:linear-gradient(135deg,rgba(255,196,99,.34),rgba(255,150,64,.18)); box-shadow:0 10px 20px -12px rgba(255,150,60,.9)}
+.abtn:active:not(:disabled){transform:scale(.975)}
+.abtn:disabled{opacity:.42; cursor:not-allowed}
+.abtn .t{display:block; font-weight:800; font-size:12px; letter-spacing:.03em}
+.abtn .s{display:block; font-size:10.5px; color:var(--dim); margin-top:2px}
+.abtn.prestige{background:linear-gradient(135deg,rgba(185,139,255,.26),rgba(255,122,217,.12)); border-color:rgba(185,139,255,.4)}
+.abtn.prestige:hover:not(:disabled){background:linear-gradient(135deg,rgba(185,139,255,.42),rgba(255,122,217,.2)); box-shadow:0 10px 20px -12px rgba(185,139,255,.9)}
+.abtn.ready-glow{animation:readyGlow 1.8s ease-in-out infinite}
+@keyframes readyGlow{0%,100%{box-shadow:0 0 0 rgba(185,139,255,0)}50%{box-shadow:0 0 22px -2px rgba(185,139,255,.55)}}
+.minisplit{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:9px}
+.mini{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:6px 8px}
+.mini .k{font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim2); font-weight:800}
+.mini .v{font-size:13px; font-weight:700; margin-top:1px}
+
+/* ======================= achievements ========================== */
+.ach-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(50px,1fr)); gap:7px; padding:2px}
+.ach{
+  position:relative; aspect-ratio:1; border-radius:12px; border:1px solid var(--line);
+  display:grid; place-items:center; font-size:22px; cursor:help;
+  background:linear-gradient(150deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+  filter:grayscale(1) brightness(.42); transition:transform .25s var(--ease), filter .35s var(--ease), box-shadow .25s var(--ease);
+}
+.ach.got{
+  filter:none; border-color:rgba(130,226,154,.34);
+  background:linear-gradient(150deg,rgba(130,226,154,.16),rgba(60,200,130,.05));
+}
+.ach.got.rare{border-color:rgba(255,196,99,.4); background:linear-gradient(150deg,rgba(255,196,99,.20),rgba(255,140,60,.06))}
+.ach.got.epic{border-color:rgba(185,139,255,.45); background:linear-gradient(150deg,rgba(185,139,255,.22),rgba(255,122,217,.07))}
+.ach:hover{transform:translateY(-4px) scale(1.1); z-index:4; box-shadow:0 10px 22px -10px rgba(0,0,0,.9)}
+.ach.new{animation:achPop .7s var(--ease)}
+@keyframes achPop{0%{transform:scale(0) rotate(-40deg)}55%{transform:scale(1.35) rotate(12deg)}100%{transform:none}}
+
+/* ============================ stats ============================ */
+.stat-sec{margin:2px 0 14px}
+.stat-sec h3{
+  margin:0 0 7px; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold);
+  font-weight:800; display:flex; align-items:center; gap:8px;
+}
+.stat-sec h3::after{content:''; flex:1 1 auto; height:1px; background:linear-gradient(90deg,var(--line2),transparent)}
+.srow{
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:6px 9px;
+  border-radius:9px; font-size:12.5px; transition:background .2s;
+}
+.srow:nth-child(odd){background:rgba(255,255,255,.022)}
+.srow:hover{background:var(--panel2)}
+.srow .k{color:var(--dim); font-weight:500}
+.srow .v{font-weight:700; color:var(--txt); text-align:right}
+.srow .v.gold{color:var(--gold)}
+.srow .v.vio{color:var(--violet)}
+.srow .v.grn{color:var(--good)}
+
+/* =========================== options =========================== */
+.opt{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 4px; border-bottom:1px solid var(--line)}
+.opt .k{font-size:12.5px; font-weight:600}
+.opt .k s{display:block; font-size:10.5px; color:var(--dim2); font-weight:500; text-decoration:none}
+.sw{
+  position:relative; width:44px; height:25px; border-radius:99px; border:1px solid var(--line2);
+  background:rgba(0,0,0,.4); cursor:pointer; flex:0 0 auto; transition:.3s var(--ease);
+}
+.sw::after{
+  content:''; position:absolute; top:2px; left:2px; width:19px; height:19px; border-radius:50%;
+  background:var(--dim); transition:.32s var(--ease);
+}
+.sw.on{background:linear-gradient(135deg,var(--gold),var(--gold2)); border-color:transparent}
+.sw.on::after{transform:translateX(19px); background:#25170a}
+input[type=range]{-webkit-appearance:none;appearance:none;width:120px;height:5px;border-radius:99px;background:rgba(255,255,255,.14);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 0 10px rgba(255,196,99,.6)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border:0;border-radius:50%;background:var(--gold);cursor:pointer}
+.wbtn{
+  width:100%; margin-top:9px; padding:10px; border-radius:11px; border:1px solid var(--line2);
+  background:var(--panel2); color:var(--txt); font-family:inherit; font-weight:700; font-size:12px;
+  cursor:pointer; transition:.25s var(--ease); letter-spacing:.04em;
+}
+.wbtn:hover{background:var(--panel3); transform:translateY(-2px)}
+.wbtn.danger{border-color:rgba(255,122,107,.4); color:var(--bad)}
+.wbtn.danger:hover{background:rgba(255,122,107,.14)}
+
+/* =========================== tooltip =========================== */
+#tip{
+  position:fixed; z-index:120; pointer-events:none; width:262px; max-width:calc(100vw - 24px);
+  border-radius:var(--r); padding:12px 13px; opacity:0; transform:scale(.9) translateY(6px);
+  transform-origin:var(--tox,100%) var(--toy,50%);
+  transition:opacity .2s var(--ease), transform .3s var(--ease);
+  background:linear-gradient(160deg,rgba(44,32,24,.97),rgba(24,17,13,.98));
+  border:1px solid var(--line2); box-shadow:0 24px 50px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(0,0,0,.4);
+  backdrop-filter:blur(14px);
+}
+#tip.on{opacity:1; transform:none}
+#tip .tt{display:flex; align-items:center; gap:9px; margin-bottom:7px}
+#tip .ti{
+  width:34px;height:34px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;font-size:19px;
+  background:linear-gradient(150deg,rgba(255,205,130,.2),rgba(255,140,60,.07)); border:1px solid var(--line);
+}
+#tip h4{margin:0; font-size:14px; font-weight:800; letter-spacing:.01em; line-height:1.15}
+#tip .kind{font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); font-weight:800; margin-top:2px}
+#tip .desc{font-size:12px; line-height:1.45; color:var(--dim); margin:0 0 8px}
+#tip .desc em{color:var(--txt); font-style:normal; font-weight:600}
+#tip .flav{font-size:11px; line-height:1.4; color:var(--dim2); font-style:italic; border-top:1px dashed var(--line); padding-top:7px; margin-top:2px}
+#tip .cost{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12.5px; font-weight:800; padding-top:7px; border-top:1px solid var(--line)}
+#tip .cost .lab{font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim2)}
+#tip .cost .ok{color:var(--good)} #tip .cost .no{color:var(--bad)}
+#tip .when{font-size:11px; color:var(--good); font-weight:600}
+#tip .when.locked{color:var(--dim2)}
+
+/* ============================ toasts =========================== */
+#toasts{position:fixed; left:50%; bottom:22px; translate:-50% 0; z-index:130; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none}
+.toast{
+  display:flex; align-items:center; gap:10px; padding:9px 15px 9px 10px; border-radius:99px;
+  background:linear-gradient(120deg,rgba(48,35,25,.97),rgba(28,20,15,.97));
+  border:1px solid var(--line2); box-shadow:var(--shadow); animation:toastIn .5s var(--ease);
+  max-width:min(92vw,420px);
+}
+.toast.out{animation:toastOut .4s var(--ease) forwards}
+@keyframes toastIn{from{opacity:0;transform:translateY(24px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateY(-8px) scale(.96)}}
+.toast .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:17px;background:var(--panel2);flex:0 0 auto}
+.toast .tx{min-width:0}
+.toast .tx b{display:block;font-size:12.5px}
+.toast .tx s{display:block;font-size:11px;color:var(--dim);text-decoration:none}
+.toast.gold{border-color:rgba(255,196,99,.5)}
+.toast.epic{border-color:rgba(185,139,255,.5)}
+
+/* =========================== golden loaf ======================= */
+#golden{
+  position:fixed; z-index:115; width:96px; height:96px; cursor:pointer; display:none; place-items:center;
+  filter:drop-shadow(0 0 24px rgba(255,205,90,.85)); animation:goldSpin 3.4s linear infinite;
+}
+@keyframes goldSpin{0%{transform:rotate(-9deg) scale(1)}50%{transform:rotate(9deg) scale(1.09)}100%{transform:rotate(-9deg) scale(1)}}
+#golden.show{display:grid}
+#golden svg{width:100%;height:100%}
+
+/* ============================ modal ============================ */
+.modal{
+  position:fixed; inset:0; z-index:140; display:grid; place-items:center; padding:20px;
+  background:rgba(8,5,4,.7); backdrop-filter:blur(9px); opacity:0; visibility:hidden;
+  transition:opacity .32s var(--ease), visibility .32s;
+}
+.modal.on{opacity:1; visibility:visible}
+.modal .box{
+  width:min(430px,100%); border-radius:20px; padding:24px; text-align:center;
+  background:linear-gradient(160deg,rgba(46,34,25,.98),rgba(24,17,13,.99));
+  border:1px solid var(--line2); box-shadow:0 40px 90px -30px #000;
+  transform:scale(.9) translateY(14px); transition:transform .42s var(--ease);
+}
+.modal.on .box{transform:none}
+.modal .box .big{font-size:44px; margin-bottom:6px}
+.modal .box h3{margin:0 0 6px; font-size:20px; font-weight:800}
+.modal .box p{margin:0 0 16px; color:var(--dim); font-size:13.5px; line-height:1.5}
+.modal .box .val{font-size:30px; font-weight:800; color:var(--gold); margin:8px 0 4px}
+.modal .row{display:flex; gap:8px}
+.modal .row .wbtn{margin-top:0}
+.modal .wbtn.primary{background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#25170a; border-color:transparent}
+textarea.io{
+  width:100%; height:110px; border-radius:11px; background:rgba(0,0,0,.4); color:var(--dim);
+  border:1px solid var(--line); padding:9px; font-family:'JetBrains Mono',monospace; font-size:10.5px; resize:none;
+}
+
+/* ============================ mobile =========================== */
+@media (max-width:920px){
+  #app{
+    --th:27vh; --bh:34vh;
+    grid-template-columns:minmax(0,1fr); grid-template-rows:var(--th) minmax(0,1fr) var(--bh);
+    transition:--th .5s var(--ease2), --bh .5s var(--ease2), grid-template-rows .5s var(--ease2);
+  }
+  #app.l-closed{--th:46px} #app.r-closed{--bh:46px}
+  .side-inner, .right .side-inner{position:relative; inset:auto; width:100%; height:100%; transform:none!important; opacity:1!important}
+  .left .side-inner{border-right:0; border-bottom:1px solid var(--line)}
+  .right .side-inner{border-left:0; border-top:1px solid var(--line)}
+  .edge{display:none}
+  .side-head{padding:10px 12px 8px}
+  .shelf-grid{max-height:110px}
+  #breadBtn{width:min(21vh,50vw)}
+  .counter{padding:4px 8px 0}
+  .counter .amount{font-size:clamp(28px,8vw,40px)}
+  .counter .unit{font-size:10px;letter-spacing:.28em}
+  .counter .rate{margin-top:4px}
+  .center-foot{padding:2px 12px 8px}
+  .hint{font-size:11px}
+  /* collapse chevrons point up / down when the panels are stacked */
+  #leftClose svg{transform:rotate(90deg)}
+  #app.l-closed #leftClose svg{transform:rotate(-90deg)}
+  #rightClose svg{transform:rotate(90deg)}
+  #app.r-closed #rightClose svg{transform:rotate(-90deg)}
+  .icon-btn svg{transition:transform .4s var(--ease)}
+  .topbar{padding:8px 12px 0}
+  .brand{font-size:12px}
+  .chip{padding:5px 9px; font-size:11px}
+  #toasts{bottom:auto; top:12px}
+}
+@media (max-width:520px){
+  .topchips .chip.hide-s{display:none}
+  .counter .rate{font-size:12.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001s!important; transition-duration:.06s!important}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== LEFT SIDEBAR ===================== -->
+  <aside class="sidebar left">
+    <div class="side-inner">
+      <div class="side-head">
+        <h2>The <b>Ledger</b></h2>
+        <button class="icon-btn" id="leftClose" title="Collapse panel" aria-label="Collapse left panel">
+          <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+      </div>
+      <div class="tabs" id="leftTabs">
+        <button class="tab on" data-pane="pStats"><span class="tab-bg"></span>Stats</button>
+        <button class="tab" data-pane="pAch"><span class="tab-bg"></span>Achievements <span class="cnt" id="achCnt">0</span></button>
+        <button class="tab" data-pane="pOpt"><span class="tab-bg"></span>Options</button>
+      </div>
+      <div class="panes">
+        <div class="pane scroll on" id="pStats"></div>
+        <div class="pane scroll" id="pAch">
+          <div class="shelf-head" style="padding:0 2px;margin-bottom:9px">
+            <span>Baker's Trophies</span><span class="n" id="achFrac">0 / 0</span>
+          </div>
+          <div class="ach-grid" id="achGrid"></div>
+          <p class="hint" style="margin:14px 2px 4px;line-height:1.5">Each trophy permanently boosts all bread production by <b style="color:var(--good)">+1%</b>. Hover a trophy for details.</p>
+        </div>
+        <div class="pane scroll" id="pOpt"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======================== CENTER ======================== -->
+  <main id="center">
+    <div class="stage-glow"></div>
+
+    <div class="topbar">
+      <div class="brand"><i class="dot"></i><span>BREAD&nbsp;CLICKER</span></div>
+      <div class="topchips">
+        <div class="chip hide-s" title="Bread earned per second"><span>⚡</span><b id="chipBps">0.00</b>/s</div>
+        <div class="chip hide-s" title="Bread per click"><span>👆</span><b id="chipClick">1.00</b></div>
+        <div class="chip" id="buffChip" style="display:none"><span>✨</span><b id="buffTxt"></b></div>
+      </div>
+    </div>
+
+    <div class="counter">
+      <b class="amount mono" id="breadAmt">0.00</b>
+      <span class="unit">BREAD</span>
+      <div class="rate">baking <b id="bpsTxt" class="mono">0.00</b> per second</div>
+    </div>
+
+    <div class="bread-wrap" id="breadWrap">
+      <button id="breadBtn" aria-label="Click the bread to bake">
+        <div class="ring" id="ring"></div>
+        <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gTop" x1="0.15" y1="0" x2="0.85" y2="1">
+              <stop offset="0" stop-color="#ffdca6"/>
+              <stop offset="42%" stop-color="#eaad5d"/>
+              <stop offset="100%" stop-color="#bd7128"/>
+            </linearGradient>
+            <linearGradient id="gBase" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#f6dfb2"/><stop offset="100%" stop-color="#d29e5c"/>
+            </linearGradient>
+            <linearGradient id="gSlash" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#fff3d6"/><stop offset="100%" stop-color="#f2c684"/>
+            </linearGradient>
+            <radialGradient id="gShine" cx="0.32" cy="0.24" r="0.6">
+              <stop offset="0" stop-color="#fff9ea" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#fff9ea" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>
+          </defs>
+          <ellipse cx="150" cy="252" rx="106" ry="17" fill="#000" opacity="0.5" filter="url(#soft)"/>
+          <g class="idle">
+            <path d="M34 194c0 28 21 46 54 46h124c33 0 54-18 54-46 0-6-5-11-11-11H45c-6 0-11 5-11 11Z" fill="url(#gBase)" stroke="#a05d1c" stroke-width="3.5" stroke-linejoin="round"/>
+            <path d="M52 213h196" stroke="#b8813c" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+            <path d="M38 196C33 122 78 74 150 74s117 48 112 122c-1 9-8 14-17 14H55c-9 0-16-5-17-14Z" fill="url(#gTop)" stroke="#a05d1c" stroke-width="4" stroke-linejoin="round"/>
+            <g opacity="0.32" stroke="#8d4f12" stroke-width="13" stroke-linecap="round" fill="none">
+              <path d="M88 180Q104 150 126 120"/><path d="M138 188Q154 158 178 126"/><path d="M188 182Q202 156 220 128"/>
+            </g>
+            <g stroke="url(#gSlash)" stroke-width="11" stroke-linecap="round" fill="none">
+              <path d="M83 175Q99 145 121 115"/><path d="M133 183Q149 153 173 121"/><path d="M183 177Q197 151 215 123"/>
+            </g>
+            <g fill="#fff8e6" opacity="0.5">
+              <circle cx="96" cy="112" r="2.2"/><circle cx="150" cy="96" r="1.8"/><circle cx="196" cy="112" r="2"/>
+              <circle cx="126" cy="150" r="1.6"/><circle cx="212" cy="146" r="1.7"/>
+            </g>
+            <g fill="#8d4f12" opacity="0.28">
+              <ellipse cx="70" cy="150" rx="4" ry="3"/><ellipse cx="106" cy="196" rx="3.4" ry="2.6"/>
+              <ellipse cx="160" cy="98" rx="3.6" ry="2.8"/><ellipse cx="228" cy="164" rx="4.2" ry="3"/>
+              <ellipse cx="206" cy="200" rx="3" ry="2.4"/><ellipse cx="120" cy="92" rx="3" ry="2.4"/>
+            </g>
+            <ellipse cx="118" cy="126" rx="66" ry="44" fill="url(#gShine)" transform="rotate(-16 118 126)"/>
+          </g>
+        </svg>
+      </button>
+    </div>
+
+    <div class="center-foot">
+      <span class="hint" id="footHint">Click the loaf. Build an empire of yeast.</span>
+    </div>
+
+    <div class="edge l" id="edgeL" title="Toggle left panel"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></div>
+    <div class="edge r" id="edgeR" title="Toggle right panel"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>
+  </main>
+
+  <!-- ===================== RIGHT SIDEBAR ==================== -->
+  <aside class="sidebar right">
+    <div class="side-inner">
+      <div class="side-head">
+        <button class="icon-btn" id="rightClose" title="Collapse panel" aria-label="Collapse right panel">
+          <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <h2 style="text-align:right">The <b>Bakery</b></h2>
+      </div>
+
+      <div class="shelf">
+        <div class="shelf-head"><span>Upgrades</span><span class="n" id="upCnt">0 available</span></div>
+        <div class="shelf-grid scroll" id="upGrid"></div>
+        <p class="hint" id="upEmpty" style="margin:2px;font-size:11px">No upgrades yet — keep baking and they'll appear.</p>
+      </div>
+
+      <div class="tabs" id="rightTabs">
+        <button class="tab on" data-pane="pBld"><span class="tab-bg"></span>Buildings</button>
+        <button class="tab" data-pane="pTow"><span class="tab-bg"></span>Towers <span class="cnt" id="towCnt">0</span></button>
+      </div>
+      <div class="panes">
+        <div class="pane scroll on" id="pBld">
+          <div class="buyrow">
+            <span class="lbl">Buy</span>
+            <div class="seg" id="buySeg">
+              <button data-buy="1" class="on">x1</button>
+              <button data-buy="10">x10</button>
+              <button data-buy="100">x100</button>
+              <button data-buy="max">MAX</button>
+            </div>
+          </div>
+          <div class="blist" id="bldList"></div>
+        </div>
+        <div class="pane scroll" id="pTow"></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div id="tip" role="tooltip"></div>
+<div id="toasts"></div>
+<div id="golden" title="Golden Loaf!">
+  <svg viewBox="0 0 100 100">
+    <defs>
+      <radialGradient id="gg" cx="35%" cy="30%">
+        <stop offset="0" stop-color="#fff6c9"/><stop offset="55%" stop-color="#ffd257"/><stop offset="100%" stop-color="#e08a1e"/>
+      </radialGradient>
+    </defs>
+    <path d="M12 62C12 36 28 22 50 22s38 14 38 40c0 9-7 15-17 15H29c-10 0-17-6-17-15Z" fill="url(#gg)" stroke="#b46a12" stroke-width="2.5"/>
+    <path d="M30 40c4-6 9-9 14-9M46 38c5-6 10-8 15-8" stroke="#fff3c4" stroke-width="4" stroke-linecap="round" fill="none" opacity=".85"/>
+  </svg>
+</div>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script>
+"use strict";
+/* =================================================================
+   0. NUMBER FORMATTING
+   ints      : 1, 10, 100, 1,000, 10,000, 100,000, 1.00M, 10.0M, 100M, 1.00B ...
+   non-ints  : 1.00, 10.0, 100, 1,000, 10,000, 100,000, 1.00M ...
+   ================================================================= */
+const SUF = ['','','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','UDc','DDc','TDc','QaDc',
+             'QiDc','SxDc','SpDc','OcDc','NoDc','Vg','UVg','DVg','TVg','QaVg','QiVg','SxVg',
+             'SpVg','OcVg','NoVg','Tg'];
+
+/* 3 significant digits, floored so a displayed price is never lower than the real one */
+function sig3(x){
+  if (x < 10)  return (Math.floor(x*100)/100).toFixed(2);
+  if (x < 100) return (Math.floor(x*10)/10).toFixed(1);
+  return String(Math.floor(x));
+}
+function comma(n){ return Math.floor(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+function fmt(n, isInt){
+  if (n === Infinity) return '∞';
+  if (!isFinite(n) || n === null || n === undefined || Number.isNaN(n)) return isInt ? '0' : '0.00';
+  if (n < 0) return '-' + fmt(-n, isInt);
+  if (n < 1000)  return isInt ? String(Math.floor(n)) : (n < 1 ? (Math.floor(n*100)/100).toFixed(2) : sig3(n));
+  if (n < 1e6)   return comma(n);
+  let k = Math.floor(Math.log10(n) / 3);
+  let m = n / Math.pow(1000, k);
+  if (m >= 1000){ k++; m /= 1000; }          // log10 rounding guard
+  if (m < 1)    { k--; m *= 1000; }
+  if (k >= SUF.length) return sig3(n / Math.pow(10, Math.floor(Math.log10(n)))) + 'e' + Math.floor(Math.log10(n));
+  return sig3(m) + SUF[k];
+}
+const fB = n => fmt(n, false);   // bread & other continuous values
+const fI = n => fmt(n, true);    // counts: clicks, buildings, achievements...
+
+function fmtTime(ms){
+  if (!isFinite(ms) || ms < 0) ms = 0;
+  const s = Math.floor(ms/1000), d = Math.floor(s/86400), h = Math.floor(s%86400/3600),
+        m = Math.floor(s%3600/60), ss = s%60;
+  if (d) return d+'d '+h+'h '+m+'m';
+  if (h) return h+'h '+String(m).padStart(2,'0')+'m '+String(ss).padStart(2,'0')+'s';
+  if (m) return m+'m '+String(ss).padStart(2,'0')+'s';
+  return ss+'s';
+}
+function fmtDate(t){
+  if (!t) return '—';
+  const d = new Date(t);
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) + ' · ' +
+         d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+}
+const ROMAN = ['0','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV',
+               'XVI','XVII','XVIII','XIX','XX'];
+const roman = n => n < ROMAN.length ? ROMAN[n] : String(n);
+
+/* =================================================================
+   1. TOWERS (buildings)
+   ================================================================= */
+const TOWERS = [
+  {id:'toaster', n:'Toaster',            ic:'🔥', base:15,     bps:0.10,   d:'A humble slot toaster that somehow produces more bread than it consumes.'},
+  {id:'baker',   n:'Apprentice Baker',   ic:'👩‍🍳', base:120,    bps:1.1,    d:'Works for tips, dreams of sourdough.'},
+  {id:'bakery',  n:'Corner Bakery',      ic:'🏪', base:1400,   bps:9,      d:'The smell alone generates revenue.'},
+  {id:'mill',    n:'Windmill',           ic:'🌬️', base:16000,  bps:52,     d:'Grinds grain, and the occasional careless tourist.'},
+  {id:'farm',    n:'Grain Farm',         ic:'🌾', base:190000, bps:300,    d:'Amber waves of profit.'},
+  {id:'factory', n:'Dough Factory',      ic:'🏭', base:2.2e6,  bps:1700,   d:'Industrial kneading at 6,000 RPM.'},
+  {id:'lab',     n:'Yeast Laboratory',   ic:'🧪', base:3.1e7,  bps:9600,   d:'The cultures have started asking questions.'},
+  {id:'bank',    n:'Bread Bank',         ic:'🏦', base:4.7e8,  bps:56000,  d:'Loaves earn compound interest. Do not ask how.'},
+  {id:'temple',  n:'Sourdough Temple',   ic:'⛩️', base:7.2e9,  bps:330000, d:'The starter is 4,000 years old and it remembers.'},
+  {id:'wizard',  n:'Wizard Tower',       ic:'🧙', base:1.1e11, bps:2.1e6,  d:'Transmutes mana directly into rye.'},
+  {id:'portal',  n:'Crumb Portal',       ic:'🌀', base:1.6e12, bps:1.3e7,  d:'Imports artisan loaves from adjacent realities.'},
+  {id:'singular',n:'Grain Singularity',  ic:'🕳️', base:2.4e13, bps:8.4e7,  d:'So dense with bread that light comes out buttered.'},
+  {id:'dimension',n:'Bread Dimension',   ic:'🌌', base:3.6e14, bps:5.6e8,  d:'An entire plane of existence made of focaccia.'},
+  {id:'yeastverse',n:'Yeastverse',       ic:'♾️', base:5.4e15, bps:3.8e9,  d:'It is rising. It will not stop rising.'},
+  {id:'chrono',  n:'Chrono Oven',        ic:'⏳', base:8.1e16, bps:2.6e10, d:'Bakes the loaf yesterday, delivers it now.'},
+  {id:'godhead', n:'Loaf Godhead',       ic:'👑', base:1.2e18, bps:1.8e11, d:'In the beginning there was the Crumb, and the Crumb was good.'}
+];
+const T_BY_ID = {}; TOWERS.forEach((t,i)=>{ t.idx=i; T_BY_ID[t.id]=t; });
+
+const LEVEL_CAP = 50;                                   // speed levels per prestige tier
+const perLevelMult = tier => 1 + 0.15 * Math.pow(1.5, tier);    // I:+15%/lv  II:+22%  III:+34% ...
+const PRESTIGE_BONUS = 2;                               // extra flat multiplier locked in per prestige
+/* Each prestige tier costs this much more, so tiers take progressively longer instead of
+   compounding for free — without it the economy overflows to Infinity in a couple of hours. */
+const tierTax = tier => Math.pow(4.5, tier);
+const MAXN = 1e300;                                     // keep everything inside double range
+
+/* =================================================================
+   2. UPGRADES  (cookie-clicker style: they spawn when unlocked)
+   Each: id, name, icon, cost, kind, desc, flavour, req(S), apply(M)
+   ================================================================= */
+const UPGRADES = [];
+let _uid = 0;
+function U(o){ o.uid = _uid++; UPGRADES.push(o); return o; }
+
+/* --- click power: doubling chain --- */
+const CLICK_UPS = [
+  ['Buttered Fingers',      '🧈', 100,      10,     'Fingers glide across the crust.'],
+  ['Flour-Dusted Palms',    '🤲', 1200,     60,     'Grip like a professional.'],
+  ['Knuckle Kneading',      '✊', 18000,    250,    'Every punch is a proofing.'],
+  ["Baker's Grip",          '💪', 3.5e5,    1200,   'You could crush a baguette. You never would.'],
+  ['Gluten Gauntlets',      '🧤', 9e6,      5000,   'Forged in a 900°C stone oven.'],
+  ['Yeast-Infused Hands',   '🫳', 2.4e8,    18000,  'They tingle. That is normal. Probably.'],
+  ['Thousand-Loaf Palm',    '🖐️', 7e9,      60000,  'A martial art banned in four provinces.'],
+  ['Hands of the Dough God','🙌', 2.5e11,   200000, 'Reality kneads itself around your touch.'],
+  ['Crustfall Technique',   '☄️', 9e12,     600000, 'One click. One crater. One loaf.'],
+  ['Omniknead',             '🌠', 4e14,     2e6,    'Every hand that has ever kneaded, kneads with you.']
+];
+CLICK_UPS.forEach((u,i)=>U({
+  name:u[0], ic:u[1], cost:u[2], kind:'click', cls:'tier-click',
+  desc:'Clicking is <em>twice</em> as effective.', flav:u[4],
+  req:S=>S.clicks >= u[3],
+  hint:'Requires '+fI(u[3])+' total clicks',
+  apply:M=>{ M.clickMult *= 2; }
+}));
+
+/* --- click scaling with production --- */
+const AMBIENT = [
+  ['Ambient Kneading',   '〰️', 5e4,  0.001, 'toaster', 10],
+  ['Rhythm Baking',      '🥁', 5e6,  0.003, 'bakery',  25],
+  ['Resonant Ovens',     '📡', 2e9,  0.008, 'lab',     25],
+  ['Harmonic Fermentation','🎼',6e12, 0.02,  'temple',  25],
+  ['Clickstorm Doctrine','⛈️', 3e16, 0.05,  'portal',  50]
+];
+AMBIENT.forEach(u=>U({
+  name:u[0], ic:u[1], cost:u[2], kind:'click', cls:'tier-click',
+  desc:'Each click also earns <em>+'+(u[3]*100).toFixed(u[3]<0.01?1:0)+'%</em> of your bread per second.',
+  flav:'The bakery hums along with you.',
+  req:S=>S.t[u[4]].count >= u[5],
+  hint:'Requires '+fI(u[5])+' '+T_BY_ID[u[4]].n,
+  apply:M=>{ M.clickBps += u[3]; }
+}));
+
+/* --- per-tower doubling upgrades --- */
+const TIER_NAMES = ['Polished','Reinforced','Automated','Enchanted','Quantum','Ascended','Mythic','Transcendent'];
+const TIER_REQ   = [1, 5, 25, 50, 100, 150, 200, 300];
+const TIER_COST  = [12, 120, 2000, 4e4, 1e6, 4e7, 2e9, 1e11];
+const TIER_ICON  = ['✨','🔩','⚙️','🪄','⚛️','🌟','🔱','🌈'];
+TOWERS.forEach(t=>{
+  TIER_NAMES.forEach((tn,i)=>U({
+    name:tn+' '+t.n, ic:t.ic, tic:TIER_ICON[i], cost:t.base*TIER_COST[i], kind:'tower', cls:'tier-tower',
+    desc:'<em>'+t.n+'s</em> produce <em>twice</em> as much bread.',
+    flav:t.d,
+    req:S=>S.t[t.id].count >= TIER_REQ[i],
+    hint:'Requires '+fI(TIER_REQ[i])+' '+t.n+(TIER_REQ[i]===1?'':'s'),
+    apply:M=>{ M.tower[t.id] *= 2; }
+  }));
+});
+
+/* --- global / synergy upgrades --- */
+U({name:"Bakers' Union", ic:'🤝', cost:5e5, kind:'global', cls:'tier-global',
+   desc:'All bread production <em>+10%</em>.', flav:'Solidarity, but make it carbs.',
+   req:S=>S.buildings >= 50, hint:'Requires 50 buildings', apply:M=>{ M.global *= 1.10; }});
+U({name:'Artisan Standards', ic:'📜', cost:8e7, kind:'global', cls:'tier-global',
+   desc:'All bread production <em>+15%</em>.', flav:'Certified hand-shaped, mostly.',
+   req:S=>S.buildings >= 150, hint:'Requires 150 buildings', apply:M=>{ M.global *= 1.15; }});
+U({name:'Continental Breakfast', ic:'🍽️', cost:9e9, kind:'global', cls:'tier-global',
+   desc:'All bread production <em>+20%</em>.', flav:'Served in every timezone at once.',
+   req:S=>S.buildings >= 300, hint:'Requires 300 buildings', apply:M=>{ M.global *= 1.20; }});
+U({name:'Grain Monopoly', ic:'🌍', cost:4e12, kind:'global', cls:'tier-global',
+   desc:'All bread production <em>+30%</em>.', flav:'You own the wheat. You own the weather.',
+   req:S=>S.buildings >= 500, hint:'Requires 500 buildings', apply:M=>{ M.global *= 1.30; }});
+U({name:'Yeast Sentience', ic:'🧠', cost:2e16, kind:'global', cls:'tier-global',
+   desc:'All bread production <em>+50%</em>.', flav:'It bakes itself now. It prefers to.',
+   req:S=>S.buildings >= 800, hint:'Requires 800 buildings', apply:M=>{ M.global *= 1.50; }});
+U({name:'The Infinite Proof', ic:'🔮', cost:5e20, kind:'global', cls:'tier-global',
+   desc:'All bread production <em>doubled</em>.', flav:'The dough has been rising for eleven years.',
+   req:S=>S.buildings >= 1200, hint:'Requires 1,200 buildings', apply:M=>{ M.global *= 2; }});
+
+U({name:'Trophy Case', ic:'🏆', cost:2e6, kind:'ach', cls:'tier-ach',
+   desc:'Each achievement gives <em>+1%</em> extra production (2% total each).',
+   flav:'Dusted daily. Never touched.',
+   req:S=>S.achCount >= 10, hint:'Requires 10 achievements', apply:M=>{ M.achBonus += 0.01; }});
+U({name:'Hall of Loaves', ic:'🏛️', cost:5e10, kind:'ach', cls:'tier-ach',
+   desc:'Each achievement gives <em>+1%</em> extra production again.',
+   flav:'Admission: one baguette.',
+   req:S=>S.achCount >= 25, hint:'Requires 25 achievements', apply:M=>{ M.achBonus += 0.01; }});
+U({name:'Legend of the Crumb', ic:'📖', cost:9e15, kind:'ach', cls:'tier-ach',
+   desc:'Each achievement gives <em>+2%</em> extra production.',
+   flav:'Chapter one: "It was a dark and yeasty night."',
+   req:S=>S.achCount >= 40, hint:'Requires 40 achievements', apply:M=>{ M.achBonus += 0.02; }});
+
+U({name:'Lucky Crust', ic:'🍀', cost:7777777, kind:'global', cls:'tier-global',
+   desc:'Golden Loaves appear <em>25% more often</em> and are worth <em>+50%</em>.',
+   flav:'Seven sevens. Statistically delicious.',
+   req:S=>S.goldens >= 1, hint:'Click a Golden Loaf', apply:M=>{ M.goldRate *= 0.8; M.goldVal *= 1.5; }});
+U({name:'Midas Bakery', ic:'🥇', cost:4e13, kind:'global', cls:'tier-global',
+   desc:'Golden Loaves appear <em>25% more often</em> and are worth <em>double</em>.',
+   flav:'Everything he touched became brunch.',
+   req:S=>S.goldens >= 15, hint:'Click 15 Golden Loaves', apply:M=>{ M.goldRate *= 0.8; M.goldVal *= 2; }});
+U({name:'Prestige Doctrine', ic:'🎖️', cost:1e14, kind:'global', cls:'tier-global',
+   desc:'Every tower prestige also grants <em>+5%</em> global production.',
+   flav:'Rank has its privileges. And its pastries.',
+   req:S=>S.prestiges >= 3, hint:'Prestige 3 towers', apply:M=>{ M.prestigePerk += 0.05; }});
+U({name:'Overnight Proof', ic:'🌙', cost:1e9, kind:'global', cls:'tier-global',
+   desc:'Offline production efficiency <em>50% → 85%</em>, and the cap rises to 24 hours.',
+   flav:'Sleep is just a long fermentation.',
+   req:S=>S.playtime >= 900000, hint:'Play for 15 minutes', apply:M=>{ M.offline = 0.85; M.offlineCap = 24; }});
+
+/* =================================================================
+   3. ACHIEVEMENTS
+   ================================================================= */
+const ACHS = [];
+function A(name, ic, desc, check, rar){ ACHS.push({id:ACHS.length, name, ic, desc, check, rar:rar||'normal'}); }
+
+[[1,'🍞','normal'],[100,'🥖','normal'],[1e4,'🥯','normal'],[1e6,'🥐','normal'],[1e9,'🍩','rare'],
+ [1e12,'🎂','rare'],[1e15,'🧁','rare'],[1e18,'🍰','epic'],[1e24,'🌟','epic'],[1e30,'💫','epic'],
+ [1e42,'🌌','epic'],[1e60,'♾️','epic']]
+.forEach(m=>A('Baked '+fB(m[0]), m[1], 'Bake a lifetime total of <em>'+fB(m[0])+'</em> bread.',
+              S=>S.totalBread >= m[0], m[2]));
+
+[[1,'👆','normal'],[100,'✌️','normal'],[1000,'🖐️','normal'],[1e4,'🤌','rare'],[1e5,'💥','rare'],[1e6,'🌪️','epic']]
+.forEach(m=>A(m[0]===1?'First Crumb':'Clicked '+fI(m[0])+' times', m[1],
+              'Click the bread <em>'+fI(m[0])+'</em> time'+(m[0]===1?'':'s')+'.', S=>S.clicks >= m[0], m[2]));
+
+[[1,'🧱','normal'],[10,'🏗️','normal'],[50,'🏘️','normal'],[100,'🏙️','rare'],[250,'🌆','rare'],
+ [500,'🗼','epic'],[1000,'🌇','epic'],[2000,'🏰','epic']]
+.forEach(m=>A(fI(m[0])+' Buildings', m[1], 'Own <em>'+fI(m[0])+'</em> buildings in total.', S=>S.buildings >= m[0], m[2]));
+
+[[1,'🛠️','normal'],[10,'🧰','normal'],[25,'📦','normal'],[50,'🎁','rare'],[75,'🏵️','rare'],[100,'💎','epic']]
+.forEach(m=>A(fI(m[0])+' Upgrades', m[1], 'Purchase <em>'+fI(m[0])+'</em> upgrades.', S=>S.upCount >= m[0], m[2]));
+
+[[1,'🎖️','rare'],[3,'🥉','rare'],[8,'🥈','epic'],[16,'🥇','epic'],[32,'👑','epic']]
+.forEach(m=>A(fI(m[0])+' Tower Prestige'+(m[0]===1?'':'s'), m[1],
+              'Prestige towers a total of <em>'+fI(m[0])+'</em> times.', S=>S.prestiges >= m[0], m[2]));
+
+[[1,'⚡','normal'],[1000,'🔋','normal'],[1e6,'🔌','rare'],[1e9,'☢️','rare'],[1e12,'🌞','epic'],[1e18,'🕳️','epic']]
+.forEach(m=>A(fB(m[0])+' per second', m[1], 'Reach <em>'+fB(m[0])+'</em> bread per second.', S=>S.bps >= m[0], m[2]));
+
+[[1,'🌟','normal'],[15,'✨','rare'],[60,'💰','epic']]
+.forEach(m=>A(fI(m[0])+' Golden Loaves', m[1], 'Click <em>'+fI(m[0])+'</em> Golden Loaves.', S=>S.goldens >= m[0], m[2]));
+
+[[600000,'⏱️','normal'],[3.6e6,'⌛','normal'],[1.8e7,'📅','rare'],[8.64e7,'🗓️','epic']]
+.forEach(m=>A('Played '+fmtTime(m[0]), m[1], 'Play for a total of <em>'+fmtTime(m[0])+'</em>.', S=>S.playtime >= m[0], m[2]));
+
+A('Full House', '🃏', 'Own at least one of <em>every</em> building.', S=>TOWERS.every(t=>S.t[t.id].count >= 1), 'rare');
+A('Baker\'s Dozen Squared', '🔢', 'Own <em>169</em> of any single building.', S=>TOWERS.some(t=>S.t[t.id].count >= 169), 'rare');
+A('Maxed Out', '🔝', 'Bring one tower to <em>speed level 50</em>.', S=>TOWERS.some(t=>S.t[t.id].lv >= LEVEL_CAP), 'rare');
+A('Ascendant', '🚀', 'Bring one tower to <em>prestige V</em>.', S=>TOWERS.some(t=>S.t[t.id].tier >= 5), 'epic');
+A('Hard Worker', '🥵', 'Earn <em>1.00M</em> bread from clicking alone.', S=>S.clickBread >= 1e6, 'rare');
+A('Idle Hands', '😴', 'Earn <em>1.00B</em> bread while doing nothing at all.', S=>S.offlineBread >= 1e9, 'rare');
+A('Neat Freak', '🧽', 'Have <em>zero</em> upgrades available while owning 100+ buildings.',
+   S=>S.buildings >= 100 && S.avail === 0, 'rare');
+A('Collector', '🖼️', 'Unlock <em>40</em> achievements.', S=>S.achCount >= 40, 'epic');
+A('Completionist', '🧿', 'Unlock <em>every other</em> achievement.', S=>S.achCount >= ACHS.length - 1, 'epic');
+
+/* =================================================================
+   4. STATE
+   ================================================================= */
+const SAVE_KEY = 'breadclicker.save.v1';
+const now = () => Date.now();
+
+function freshTower(){ return {count:0, lv:0, tier:0, locked:1, made:0}; }
+function freshState(){
+  const t = {}; TOWERS.forEach(x=>t[x.id] = freshTower());
+  return {
+    bread:0, totalBread:0, spent:0, clicks:0, clickBread:0, offlineBread:0, goldenBread:0,
+    t, ups:{}, achs:{}, prestiges:0, goldens:0, buyAmt:1,
+    started:now(), playtime:0, lastSave:now(), lastTick:now(),
+    bestBps:0, handBest:0,
+    opt:{sound:true, vol:0.55, particles:true, golden:true},
+    buffUntil:0, buffMult:1, buffName:''
+  };
+}
+let S = freshState();
+let openTowers = {};      // ui: which building rows are expanded
+
+/* derived, recomputed every frame */
+let M = null, BPS = 0, CLICKV = 0, AVAIL = [];
+
+function recompute(){
+  M = {clickMult:1, clickBps:0, global:1, achBonus:0.01, tower:{}, goldRate:1, goldVal:1,
+       prestigePerk:0, offline:0.5, offlineCap:8};
+  TOWERS.forEach(t=>M.tower[t.id] = 1);
+  for (const k in S.ups) if (S.ups[k]) UPGRADES[k] && UPGRADES[k].apply(M);
+
+  const achCount = achCountFn();
+  M.global *= 1 + M.achBonus * achCount;
+  M.global *= 1 + M.prestigePerk * S.prestiges;
+  if (S.buffUntil > now()) M.global *= S.buffMult;
+
+  BPS = 0;
+  TOWERS.forEach(t=>{
+    const st = S.t[t.id];
+    const mult = st.locked * Math.pow(perLevelMult(st.tier), st.lv) * M.tower[t.id];
+    st._each = t.bps * mult * M.global;
+    st._out  = st._each * st.count;
+    BPS += st._out;
+  });
+  CLICKV = (1 * M.clickMult + BPS * M.clickBps) * M.global;
+  if (BPS > S.bestBps) S.bestBps = BPS;
+}
+function achCountFn(){ let c = 0; for (const k in S.achs) if (S.achs[k]) c++; return c; }
+function buildingCount(){ let c = 0; TOWERS.forEach(t=>c += S.t[t.id].count); return c; }
+function upCountFn(){ let c = 0; for (const k in S.ups) if (S.ups[k]) c++; return c; }
+
+/* snapshot handed to upgrade / achievement unlock checks */
+function snap(){
+  return {
+    bread:S.bread, totalBread:S.totalBread, clicks:S.clicks, clickBread:S.clickBread,
+    offlineBread:S.offlineBread, prestiges:S.prestiges, goldens:S.goldens, playtime:S.playtime,
+    bps:BPS, t:S.t, buildings:buildingCount(), upCount:upCountFn(), achCount:achCountFn(),
+    avail:AVAIL.length
+  };
+}
+
+/* =================================================================
+   5. ECONOMY
+   ================================================================= */
+const towerCost = (t, owned) => t.base * Math.pow(1.15, owned);
+function bulkCost(t, owned, amount){
+  // geometric series: base*1.15^owned * (1.15^amount - 1) / 0.15
+  return t.base * Math.pow(1.15, owned) * (Math.pow(1.15, amount) - 1) / 0.15;
+}
+function maxAffordable(t, owned, bread){
+  const c = t.base * Math.pow(1.15, owned);
+  if (bread < c) return 0;
+  const n = Math.floor(Math.log(bread * 0.15 / c + 1) / Math.log(1.15));
+  return Math.max(0, Math.min(n, 100000));
+}
+function buyAmountFor(t){
+  const st = S.t[t.id];
+  if (S.buyAmt === 'max') return Math.max(1, maxAffordable(t, st.count, S.bread));
+  return S.buyAmt;
+}
+/* speed-upgrade + prestige pricing scales with the tower's locked-in power */
+function levelCost(t){
+  const st = S.t[t.id];
+  return Math.min(MAXN, t.base * 55 * st.locked * tierTax(st.tier) *
+                        Math.pow(perLevelMult(st.tier) * 1.07, st.lv));
+}
+function prestigeCost(t){
+  const st = S.t[t.id];
+  return Math.min(MAXN, t.base * 55 * st.locked * tierTax(st.tier) *
+                        Math.pow(perLevelMult(st.tier) * 1.07, LEVEL_CAP) * 30);
+}
+
+function spend(n){ if (!(S.bread >= n)) return false; S.bread -= n; S.spent = Math.min(MAXN, S.spent + n); return true; }
+function earn(n, kind){
+  if (!isFinite(n) || n <= 0) return;
+  S.bread = Math.min(MAXN, S.bread + n); S.totalBread = Math.min(MAXN, S.totalBread + n);
+  if (kind === 'click') S.clickBread += n;
+  if (kind === 'offline') S.offlineBread += n;
+  if (kind === 'golden') S.goldenBread += n;
+  if (!isFinite(S.bread)) S.bread = MAXN;
+  if (S.bread > S.handBest) S.handBest = S.bread;
+}
+
+function buyTower(t){
+  const st = S.t[t.id];
+  let amt = buyAmountFor(t);
+  let cost = bulkCost(t, st.count, amt);
+  if (cost > S.bread){                        // fixed amounts fall back to as many as possible
+    amt = maxAffordable(t, st.count, S.bread);
+    if (amt <= 0) return false;
+    cost = bulkCost(t, st.count, amt);
+  }
+  if (!spend(cost)) return false;
+  st.count += amt;
+  recompute(); dirty.bld = dirty.stats = true;
+  return amt;
+}
+function upgradeTower(t){
+  const st = S.t[t.id];
+  if (st.lv >= LEVEL_CAP) return false;
+  const c = levelCost(t);
+  if (!spend(c)) return false;
+  st.lv++;
+  recompute(); dirty.bld = dirty.stats = true;
+  if (st.lv >= LEVEL_CAP) toast('⭐','Prestige ready','<b>'+t.n+'</b> reached speed level 50','gold');
+  return true;
+}
+function prestigeTower(t){
+  const st = S.t[t.id];
+  if (st.lv < LEVEL_CAP) return false;
+  const c = prestigeCost(t);
+  if (!spend(c)) return false;
+  st.locked = Math.min(MAXN, st.locked * Math.pow(perLevelMult(st.tier), LEVEL_CAP) * PRESTIGE_BONUS);
+  st.tier++; st.lv = 0; S.prestiges++;
+  recompute(); dirty.bld = dirty.stats = dirty.ups = true;
+  toast('🎖️','Prestige '+roman(st.tier),
+        '<b>'+t.n+'</b> levels are now <b>+'+Math.round((perLevelMult(st.tier)-1)*100)+'%</b> each','epic');
+  burst(48);
+  return true;
+}
+function buyUpgrade(u){
+  if (S.ups[u.uid]) return false;
+  if (!spend(u.cost)) return false;
+  S.ups[u.uid] = 1;
+  recompute(); dirty.stats = dirty.bld = true;
+  return true;
+}
+
+/* =================================================================
+   6. DOM PLUMBING
+   ================================================================= */
+const $ = s => document.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const dirty = {ups:true, bld:true, ach:true, stats:true, tow:true};
+
+const D = {
+  app:$('#app'), bread:$('#breadAmt'), bps:$('#bpsTxt'), chipBps:$('#chipBps'), chipClick:$('#chipClick'),
+  breadBtn:$('#breadBtn'), wrap:$('#breadWrap'), ring:$('#ring'), upGrid:$('#upGrid'), upCnt:$('#upCnt'),
+  upEmpty:$('#upEmpty'), bldList:$('#bldList'), achGrid:$('#achGrid'), achCnt:$('#achCnt'), achFrac:$('#achFrac'),
+  stats:$('#pStats'), opts:$('#pOpt'), tow:$('#pTow'), towCnt:$('#towCnt'), tip:$('#tip'), toasts:$('#toasts'),
+  golden:$('#golden'), modal:$('#modal'), modalBox:$('#modalBox'), buffChip:$('#buffChip'), buffTxt:$('#buffTxt'),
+  foot:$('#footHint')
+};
+
+/* ---------------------------- audio ---------------------------- */
+const CLICK_WAV_B64 = "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HwA1ADsAUAA/ADoAKwAmABIA6//I/6H/jv+F/2r/Wv9P/0n/Vf9n/2H/Uv9H/1r/W/9b/1v/V/9V/1f/ZP9n/2j/bv9z/3T/av9c/1D/U/9R/1f/XP9m/1z/WP9f/2r/ef9+/37/h/+H/37/gP+M/6X/rf+9/8b/1v/q/+f/7v/9/wsACQAJAAwACwAWABMADgARABMADgAFAPz/+/8AAP7/9P/x/+z/5f/g/9P/1f/j//n//P8DABQAHQAbABoAGQAVABcAFAANAA4ADAAIAAgABgADAAAA8//u//v/DAARAAsADwAXABoAFQAVABIAFgASAA4ADQAFAAIA+f/z/+f/3f/V/9j/4f/m/+f/5v/k/97/4f/0//j/AAACAAAACwARABEAFAANABAAFQAoADoARABNAEIARQBPAFgAWABGAD8APgA4AC8AEgAFAPv/9P/s/+D/2//W/9T/0//Q/83/zP/L/8X/xf/J/9L/3v/f/+T/6P/0/wEAEwAhACoAMQAwACsAHwAYAA0AAwADAAAA/f8BAAcACQARABEAFwAhACwAMgA4AD0AQABJAFMAXQBfAF4AXQBmAGwAbQBjAFwATwBQAFEASwBGAEMAPQA2AC4AJwAlACIAHAAWAA8ADgAKAAcAAgD+//L/7//v/+n/3v/R/8f/vP+1/67/qP+p/67/rf+n/57/lP+Q/5L/kf+X/5r/nv+m/6//tv/B/8j/0P/U/9r/2P/W/9T/zf/K/8D/xP/C/83/1P/X/97/6P/y//r/AQAGAAkADAAWABoAIAAkACUAJQAnACsALQAuACsALgAxADIALgAsACgAJwAqADUAPwBAAEEAOwA5ADMALwApACgAKgAtADAALAAkACUAKwAxADoAQgBEAEQARABEAEQAOgA4ADIALwArACIAHgATABAADgAVABgAGAAWABMAEwAWACEAJgAoACsAKQAvAC8ALQAgABYAEgANAA0ACAAEAAMABgADAAYACwARABMAFQAUABEADQAEAPz/7//r/+T/3//X/87/y//F/8P/wv/D/8f/zP/S/9n/4f/t//n/AAALABIAGQAbACAAJQAqAC0AKgAmACAAHgAYABQADgAIAAMAAAAAAPv/9f/p/+P/4f/d/9v/2v/b/9r/2//c/9//4v/k/+H/4f/i/+T/5v/q//H/+P///wEAAgABAAMAAgAAAAAA///9//v/+P/2//b/9P/z//P/9P/1//f/9v/1//H/7//r/+b/5P/i/+L/4P/j/+T/5P/m/+r/7v/y//j/+//+/wAAAAABAAQABAADAAIAAwAEAAUABwAHAAcABwAHAAoADQAQAA8ADwAQABEAEgAWABoAHgAiACEAIQAhACIAIAAfAB0AHQAeABoAGQAXABYAFQATABIAEgAQAAwACwAMAAoACAAGAAQAAwAAAAAA/P/7//r/9//z/+//7v/t/+z/7f/v/+//7v/t/+7/7//v//D/8P/y//H/8P/w//D/8f/y//T/9P/1//X/9v/3//f/9//3//f/9//1//X/9P/1//b/9//2//b/9//3//j/9//4//j/+f/5//r/+v/6//v/+//7//z//P/9//7///8AAAAAAgACAAMAAwADAAQABAAEAAUABgAGAAUABAADAAMAAgACAAEAAQABAAEAAQAAAAAAAQABAAEAAgACAAMAAwADAAMAAwADAAMAAwACAAIAAQABAAAAAAD///7//////////////////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEMyUEF+FgAAAAAWfmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZYanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTowMDNjZTFlYy0xZDE5LTRlZTktYWFjMy00NzBmYzU5NTdmMzMAAAADk2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALhqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaIYpogox2Pa3miLTErf3aiwAAABsY2JvcqNpZGM6Zm9ybWF0aWF1ZGlvL3dhdmppbnN0YW5jZUlEeCx4bXA6aWlkOmU1NDhmNjM3LTEzYWItNDJkNi04NzRjLTcxMGVhZTRmZjFkMmxyZWxhdGlvbnNoaXBocGFyZW50T2YAAAHianVtYgAAAEFqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmFjdGlvbnMudjIAAAAAGGMyc2hFPOuZ2cGMStP1+iHQ5ToTAAABmWNib3KiZ2FjdGlvbnOComZhY3Rpb25rYzJwYS5vcGVuZWRqcGFyYW1ldGVyc6FraW5ncmVkaWVudHOBomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCARwoWpAWvvhSoaK0+YnZaw/U77DHDXt2/VuNvV2/ZvcqRmYWN0aW9ueB1jb20uYW50aHJvcGljLmNsYXVkZS5wcm92aWRlZGpwYXJhbWV0ZXJzoXgfY29tLmFudGhyb3BpYy5vcmlnaW4tY29uZmlkZW5jZWd1bmtub3dua2Rlc2NyaXB0aW9ueGZDbGF1ZGUgcHJvdmlkZWQgdGhpcyBmaWxlIGF0IHRoZSByZXF1ZXN0IG9mIGEgdXNlciBhbmQgbWF5IGhhdmUgY3JlYXRlZCBvciBtb2RpZmllZCB0aGUgZmlsZSBjb250ZW50cy5tc29mdHdhcmVBZ2VudKFkbmFtZWZDbGF1ZGVyYWxsQWN0aW9uc0luY2x1ZGVk9QAAAMhqdW1iAAAAQGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaGFzaC5kYXRhAAAAABhjMnNoSVkgGq9kdDlnAD03/qUHKQAAAIBjYm9ypWNhbGdmc2hhMjU2Y3BhZEwAAAAAAAAAAAAAAABkaGFzaFggfkcWjApZ+tHk4a+7rP3jbX8gjPYoRauMcHOCCr3FHhBkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQZJTZmbGVuZ3RoGRaGAAACPmp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAIPY2JvcqVjYWxnZnNoYTI1NmlzaWduYXR1cmV4TXNlbGYjanVtYmY9L2MycGEvdXJuOmMycGE6MDAzY2UxZWMtMWQxOS00ZWU5LWFhYzMtNDcwZmM1OTU3ZjMzL2MycGEuc2lnbmF0dXJlamluc3RhbmNlSUR4LHhtcDppaWQ6OTNlNmQ4MzAtY2Q1NS00NGM4LWFiOTMtYzAxNmM5YWVjYTVmcmNyZWF0ZWRfYXNzZXJ0aW9uc4Oi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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9lhAjchQeCplZFigWqnmOHAlBS4MNkDYQG6sKxv+LjCcW9ARfwN2HW373AekVwrYcUM2wIJMBACaz6qjGpfTaHQHVQ==";
+let AC = null, CLICK_BUF = null, audioReady = false;
+function b64bytes(b64){
+  const bin = atob(b64), a = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  return a;
+}
+function initAudio(){
+  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+  try {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    AC.decodeAudioData(b64bytes(CLICK_WAV_B64).buffer,
+      b => { CLICK_BUF = b; audioReady = true; },
+      () => { audioReady = false; });
+  } catch(e){ AC = null; }
+}
+function playClick(rate){
+  if (!S.opt.sound || !audioReady || !AC) return;
+  if (AC.state === 'suspended') AC.resume();
+  const src = AC.createBufferSource(); src.buffer = CLICK_BUF;
+  src.playbackRate.value = rate || (0.93 + Math.random() * 0.16);
+  const g = AC.createGain(); g.gain.value = S.opt.vol;
+  src.connect(g); g.connect(AC.destination); src.start(0);
+}
+addEventListener('pointerdown', initAudio, {once:false, passive:true});
+
+/* --------------------------- tooltip --------------------------- */
+let tipHideT = 0;
+function tipHTML(o){
+  let h = '<div class="tt"><div class="ti">' + o.ic + '</div><div><h4>' + o.name + '</h4>' +
+          (o.kind ? '<div class="kind">' + o.kind + '</div>' : '') + '</div></div>';
+  h += '<p class="desc">' + o.desc + '</p>';
+  if (o.flav) h += '<div class="flav">' + o.flav + '</div>';
+  if (o.cost != null){
+    const ok = S.bread >= o.cost;
+    h += '<div class="cost"><span class="lab">Cost</span><span class="' + (ok ? 'ok' : 'no') + '">' +
+         fB(o.cost) + ' bread</span></div>';
+  }
+  if (o.when) h += '<div class="cost"><span class="lab">' + (o.whenLab || 'Unlocked') + '</span><span class="when' +
+                   (o.whenLocked ? ' locked' : '') + '">' + o.when + '</span></div>';
+  return h;
+}
+function showTip(o, anchor){
+  clearTimeout(tipHideT);
+  D.tip.innerHTML = tipHTML(o);
+  D.tip.classList.add('on');
+  positionTip(anchor);
+}
+function positionTip(anchor){
+  const r = anchor.getBoundingClientRect(), t = D.tip.getBoundingClientRect();
+  const vw = innerWidth, vh = innerHeight, pad = 10;
+  let x, y, ox = '50%', oy = '50%';
+  if (vw <= 920){                                   // mobile: above or below
+    x = Math.min(Math.max(pad, r.left + r.width/2 - t.width/2), vw - t.width - pad);
+    if (r.top > t.height + pad + 6){ y = r.top - t.height - 8; oy = '100%'; }
+    else { y = r.bottom + 8; oy = '0%'; }
+    ox = ((r.left + r.width/2 - x) / t.width * 100).toFixed(1) + '%';
+  } else {
+    const left = r.left - t.width - 12, right = r.right + 12;
+    if (left >= pad){ x = left; ox = '100%'; }
+    else if (right + t.width <= vw - pad){ x = right; ox = '0%'; }
+    else { x = Math.min(Math.max(pad, r.left), vw - t.width - pad); ox = '50%'; }
+    y = Math.min(Math.max(pad, r.top + r.height/2 - t.height/2), vh - t.height - pad);
+    oy = ((r.top + r.height/2 - y) / t.height * 100).toFixed(1) + '%';
+  }
+  D.tip.style.setProperty('--tox', ox);
+  D.tip.style.setProperty('--toy', oy);
+  D.tip.style.left = Math.round(x) + 'px';
+  D.tip.style.top = Math.round(y) + 'px';
+}
+function hideTip(){ D.tip.classList.remove('on'); }
+function bindTip(node, getData){
+  node.addEventListener('pointerenter', e => { node._tipData = getData(); showTip(node._tipData, node); });
+  node.addEventListener('pointerleave', hideTip);
+  node.addEventListener('pointerdown', () => {
+    showTip(getData(), node);
+    if (matchMedia('(hover:none)').matches){ clearTimeout(tipHideT); tipHideT = setTimeout(hideTip, 2600); }
+  });
+  node._refreshTip = () => { if (D.tip.classList.contains('on') && node.matches(':hover')) showTip(getData(), node); };
+}
+
+/* ---------------------------- toasts --------------------------- */
+function toast(ic, title, sub, cls){
+  const t = el('div', 'toast ' + (cls || ''),
+    '<div class="ic">' + ic + '</div><div class="tx"><b>' + title + '</b><s>' + (sub || '') + '</s></div>');
+  D.toasts.appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 420); }, 3600);
+  while (D.toasts.children.length > 4) D.toasts.firstChild.remove();
+}
+
+/* --------------------------- particles ------------------------- */
+const CRUMB_COLORS = ['#f4c98a','#e0a75c','#c98840','#fff0d2','#ffb955'];
+function burst(count, cx, cy){
+  if (!S.opt.particles) return;
+  const wr = D.wrap.getBoundingClientRect();
+  const br = D.breadBtn.getBoundingClientRect();
+  const x = (cx == null ? br.left + br.width/2 : cx) - wr.left;
+  const y = (cy == null ? br.top + br.height/2 : cy) - wr.top;
+  for (let i = 0; i < count; i++){
+    const c = el('div','crumb');
+    const s = 3 + Math.random()*7;
+    c.style.cssText = 'width:' + s + 'px;height:' + s + 'px;left:' + x + 'px;top:' + y + 'px;background:' +
+      CRUMB_COLORS[(Math.random()*CRUMB_COLORS.length)|0] + ';';
+    D.wrap.appendChild(c);
+    const a = Math.random() * Math.PI * 2, d = 40 + Math.random() * 170;
+    c.animate([
+      {transform:'translate(-50%,-50%) rotate(0deg) scale(1)', opacity:1},
+      {transform:'translate(' + (Math.cos(a)*d - 50) + '%,' + (Math.sin(a)*d + 90 - 50) + '%) rotate(' +
+        ((Math.random()*720-360)|0) + 'deg) scale(.3)', opacity:0}
+    ], {duration:520 + Math.random()*520, easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish = () => c.remove();
+  }
+}
+function floatNum(text, x, y, crit){
+  const wr = D.wrap.getBoundingClientRect();
+  const f = el('div', 'float-num' + (crit ? ' crit' : ''), text);
+  f.style.left = (x - wr.left) + 'px'; f.style.top = (y - wr.top) + 'px';
+  D.wrap.appendChild(f);
+  f.animate([
+    {transform:'translate(-50%,-50%) scale(.6)', opacity:0},
+    {transform:'translate(-50%,-135%) scale(1.12)', opacity:1, offset:.22},
+    {transform:'translate(-50%,-300%) scale(.95)', opacity:0}
+  ], {duration:crit ? 1250 : 950, easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish = () => f.remove();
+}
+
+/* =================================================================
+   7. CLICKING THE BREAD
+   ================================================================= */
+let clickAnim = null;
+function doClick(ev){
+  const crit = Math.random() < 0.02;
+  const v = CLICKV * (crit ? 7 : 1);
+  earn(v, 'click');
+  S.clicks++;
+  S.bestClick = Math.max(S.bestClick || 0, v);
+
+  const r = D.breadBtn.getBoundingClientRect();
+  const px = ev && ev.clientX ? ev.clientX : r.left + r.width/2;
+  const py = ev && ev.clientY ? ev.clientY : r.top + r.height/2;
+
+  playClick(crit ? 0.72 : undefined);
+  floatNum((crit ? '✦ ' : '+') + fB(v), px, py - 10, crit);
+  burst(crit ? 26 : 7, px, py);
+
+  if (clickAnim) clickAnim.cancel();
+  clickAnim = D.breadBtn.animate([
+    {transform:'scale(1)'}, {transform:'scale(' + (crit ? .82 : .9) + ') rotate(-1.5deg)', offset:.24},
+    {transform:'scale(' + (crit ? 1.12 : 1.055) + ') rotate(1deg)', offset:.6}, {transform:'scale(1)'}
+  ], {duration:crit ? 460 : 300, easing:'cubic-bezier(.2,.9,.25,1)'});
+
+  D.ring.animate([
+    {opacity:.85, transform:'translate(-50%,-50%) scale(.55)', borderWidth:'3px'},
+    {opacity:0,   transform:'translate(-50%,-50%) scale(1.5)', borderWidth:'1px'}
+  ], {duration:crit ? 800 : 620, easing:'cubic-bezier(.15,.8,.3,1)'});
+
+  D.bread.classList.add('bump');
+  clearTimeout(doClick._bt); doClick._bt = setTimeout(() => D.bread.classList.remove('bump'), 110);
+  if (crit) toast('✦','Lucky Bite!','A ×7 click for ' + fB(v) + ' bread','gold');
+  dirty.stats = true;
+}
+D.breadBtn.addEventListener('pointerdown', e => { if (e.button === 0 || e.pointerType !== 'mouse') doClick(e); });
+D.breadBtn.addEventListener('contextmenu', e => e.preventDefault());
+
+/* =================================================================
+   8. RENDERERS
+   ================================================================= */
+/* ---------------------------- upgrades ------------------------- */
+function computeAvail(){
+  const sn = snap();
+  AVAIL = UPGRADES.filter(u => !S.ups[u.uid] && u.req(sn));
+  AVAIL.sort((a,b) => a.cost - b.cost);
+}
+const upSeen = new Set();
+function renderUpgrades(){
+  computeAvail();
+  D.upGrid.innerHTML = '';
+  D.upEmpty.style.display = AVAIL.length ? 'none' : 'block';
+  D.upCnt.textContent = AVAIL.length ? fI(AVAIL.length) + ' available' : 'none yet';
+  AVAIL.forEach((u,i) => {
+    const n = el('div', 'up ' + u.cls, u.ic);
+    if (upSeen.has(u.uid)) n.style.animation = 'none';
+    else { n.style.animationDelay = Math.min(i * 22, 420) + 'ms'; upSeen.add(u.uid); }
+    n._up = u;
+    bindTip(n, () => ({
+      ic:u.ic, name:u.name, kind:(u.tic ? u.tic + ' ' : '') + ({click:'Click upgrade',
+      tower:'Building upgrade', global:'Global upgrade', ach:'Achievement upgrade'}[u.kind] || 'Upgrade'),
+      desc:u.desc, flav:u.flav, cost:u.cost
+    }));
+    n.addEventListener('click', () => {
+      if (S.bread < u.cost){ n.animate([{transform:'translateX(0)'},{transform:'translateX(-5px)'},
+        {transform:'translateX(5px)'},{transform:'translateX(0)'}], {duration:220}); return; }
+      buyUpgrade(u);
+      n.classList.add('buying'); hideTip();
+      playClick(1.35);
+      toast(u.ic, u.name, 'Upgrade purchased', 'gold');
+      setTimeout(() => { dirty.ups = true; }, 300);
+    });
+    D.upGrid.appendChild(n);
+  });
+  refreshUpgradeAfford();
+}
+function refreshUpgradeAfford(){
+  for (const n of D.upGrid.children) n.classList.toggle('locked', S.bread < n._up.cost);
+}
+
+/* --------------------------- buildings ------------------------- */
+const bldNodes = {};
+function buildingUnlocked(t){
+  const st = S.t[t.id];
+  if (st.count > 0 || st.seen) return (st.seen = 1);
+  if (S.totalBread >= t.base * 0.35){ st.seen = 1; return 1; }
+  return 0;
+}
+function makeBuilding(t){
+  const st = S.t[t.id];
+  const node = el('div', 'bld');
+  node.innerHTML =
+    '<div class="brow">' +
+      '<div class="bicon">' + t.ic + '</div>' +
+      '<div class="bmain">' +
+        '<div class="bname"><span class="nm">' + t.n + '</span><span class="pz" hidden></span></div>' +
+        '<div class="bsub"><span class="bcost mono">0</span><span class="b">·</span><span class="beach mono"></span></div>' +
+      '</div>' +
+      '<div class="bright"><div class="bcount mono">0</div>' +
+        '<div class="bchev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="bdetail"><div class="bdetail-in"><div class="bdetail-pad">' +
+      '<div class="lvline"><span>Speed level <b class="lv">0</b> / ' + LEVEL_CAP + '</span><span class="pt"></span></div>' +
+      '<div class="bar"><i></i></div>' +
+      '<div class="btnrow">' +
+        '<button class="abtn up"><span class="t">Upgrade</span><span class="s"></span></button>' +
+        '<button class="abtn prestige"><span class="t">Prestige</span><span class="s"></span></button>' +
+      '</div>' +
+      '<div class="minisplit">' +
+        '<div class="mini"><div class="k">Output</div><div class="v mono o"></div></div>' +
+        '<div class="mini"><div class="k">Multiplier</div><div class="v mono m"></div></div>' +
+      '</div>' +
+    '</div></div></div>';
+  const q = s => node.querySelector(s);
+  const refs = {node, cost:q('.bcost'), each:q('.beach'), count:q('.bcount'), lv:q('.lv'), bar:q('.bar i'),
+    up:q('.abtn.up'), upS:q('.abtn.up .s'), pr:q('.abtn.prestige'), prS:q('.abtn.prestige .s'),
+    prT:q('.abtn.prestige .t'), o:q('.mini .o'), m:q('.mini .m'), pz:q('.pz'), pt:q('.pt'), row:q('.brow')};
+
+  refs.row.addEventListener('click', e => {
+    if (e.target.closest('.bchev')){
+      openTowers[t.id] = !openTowers[t.id];
+      node.classList.toggle('open', !!openTowers[t.id]);
+      return;
+    }
+    const got = buyTower(t);
+    if (got){
+      playClick(1.15);
+      refs.count.classList.add('tick');
+      setTimeout(() => refs.count.classList.remove('tick'), 220);
+      burst(6);
+    } else {
+      node.animate([{transform:'translateX(0)'},{transform:'translateX(-4px)'},
+        {transform:'translateX(4px)'},{transform:'translateX(0)'}], {duration:200});
+    }
+  });
+  refs.up.addEventListener('click', () => { if (upgradeTower(t)) { playClick(1.5); burst(8); } });
+  refs.pr.addEventListener('click', () => {
+    if (S.t[t.id].lv < LEVEL_CAP) return;
+    if (prestigeTower(t)) playClick(0.65);
+  });
+  bindTip(refs.row, () => {
+    const s2 = S.t[t.id];
+    return {ic:t.ic, name:t.n, kind:'Building · ' + (s2.tier ? 'Prestige ' + roman(s2.tier) : 'Prestige —'),
+      desc:'Each one bakes <em>' + fB(s2._each) + '</em> bread per second.<br>You own <em>' + fI(s2.count) +
+        '</em>, together making <em>' + fB(s2._out) + '/s</em> (' +
+        (BPS > 0 ? (s2._out / BPS * 100).toFixed(1) : '0.0') + '% of all bread).',
+      flav:t.d, cost:bulkCost(t, s2.count, buyAmountFor(t))};
+  });
+  D.bldList.appendChild(node);
+  bldNodes[t.id] = refs;
+  return refs;
+}
+function renderBuildings(){
+  TOWERS.forEach((t,i) => {
+    if (!buildingUnlocked(t)) return;
+    if (!bldNodes[t.id]) makeBuilding(t).node.style.animationDelay = Math.min(i * 30, 400) + 'ms';
+  });
+  updateBuildings();
+}
+function updateBuildings(){
+  let owned = 0;
+  TOWERS.forEach(t => {
+    const r = bldNodes[t.id]; if (!r) return;
+    const st = S.t[t.id];
+    if (st.count > 0) owned++;
+    const amt = buyAmountFor(t), cost = bulkCost(t, st.count, amt);
+    const afford = S.bread >= cost;
+    r.cost.textContent = fB(cost) + (amt > 1 ? ' ×' + fI(amt) : '');
+    r.each.textContent = fB(st._each) + '/s each';
+    r.count.textContent = fI(st.count);
+    r.node.classList.toggle('afford', afford);
+    r.node.classList.toggle('poor', !afford);
+    r.node.classList.toggle('owned', st.count > 0);
+    r.node.classList.toggle('open', !!openTowers[t.id]);
+    r.pz.hidden = st.tier === 0;
+    r.pz.textContent = '\u2605' + roman(st.tier);
+    if (!openTowers[t.id]) return;                        // detail only when expanded
+    const ready = st.lv >= LEVEL_CAP;
+    r.node.classList.toggle('ready', ready);
+    r.lv.textContent = fI(st.lv);
+    r.bar.style.width = (st.lv / LEVEL_CAP * 100) + '%';
+    r.pt.textContent = '+' + Math.round((perLevelMult(st.tier) - 1) * 100) + '% per level';
+    const lc = levelCost(t);
+    r.up.disabled = ready || S.bread < lc;
+    r.upS.textContent = ready ? 'Level maxed' : fB(lc) + ' bread';
+    r.up.querySelector('.t').textContent = ready ? 'Max level' : 'Upgrade speed';
+    const pc = prestigeCost(t);
+    r.pr.disabled = !ready || S.bread < pc;
+    r.pr.classList.toggle('ready-glow', ready && S.bread >= pc);
+    r.prT.textContent = 'Prestige ' + roman(st.tier + 1);
+    r.prS.textContent = ready ? fB(pc) + ' bread' : 'Needs level ' + LEVEL_CAP;
+    r.o.textContent = fB(st._out) + '/s';
+    r.m.textContent = '×' + fB(st.locked * Math.pow(perLevelMult(st.tier), st.lv) * M.tower[t.id]);
+  });
+  D.towCnt.textContent = fI(owned);
+}
+
+/* ------------------------- achievements ------------------------ */
+const achNodes = [];
+function renderAchGrid(){
+  D.achGrid.innerHTML = ''; achNodes.length = 0;
+  ACHS.forEach(a => {
+    const n = el('div', 'ach ' + a.rar, a.ic);
+    bindTip(n, () => {
+      const got = S.achs[a.id];
+      return {ic:got ? a.ic : '❔', name:got ? a.name : '???',
+        kind:{normal:'Achievement', rare:'Rare achievement', epic:'Epic achievement'}[a.rar],
+        desc:a.desc, whenLab:got ? 'Unlocked' : 'Status',
+        when:got ? fmtDate(S.achs[a.id]) : 'Locked', whenLocked:!got};
+    });
+    D.achGrid.appendChild(n); achNodes.push(n);
+  });
+  updateAchGrid();
+}
+function updateAchGrid(){
+  let c = 0;
+  ACHS.forEach((a,i) => {
+    const got = !!S.achs[a.id]; if (got) c++;
+    achNodes[i].classList.toggle('got', got);
+    achNodes[i].textContent = got ? a.ic : '❔';
+  });
+  D.achCnt.textContent = fI(c);
+  D.achFrac.textContent = fI(c) + ' / ' + fI(ACHS.length);
+}
+function checkAchievements(){
+  const sn = snap(); let got = false;
+  for (const a of ACHS){
+    if (S.achs[a.id]) continue;
+    let ok = false; try { ok = a.check(sn); } catch(e){ ok = false; }
+    if (ok){
+      S.achs[a.id] = now(); got = true;
+      toast(a.ic, a.name, 'Achievement unlocked · +1% production', a.rar === 'epic' ? 'epic' : 'gold');
+      const n = achNodes[a.id];
+      if (n){ n.classList.add('new'); setTimeout(() => n.classList.remove('new'), 750); }
+    }
+  }
+  if (got){ recompute(); dirty.ach = dirty.stats = dirty.ups = true; }
+}
+
+/* ----------------------------- stats --------------------------- */
+function row(k, v, cls){ return '<div class="srow"><span class="k">' + k + '</span><span class="v ' + (cls||'') + '">' + v + '</span></div>'; }
+function sec(title, rows){ return '<div class="stat-sec"><h3>' + title + '</h3>' + rows + '</div>'; }
+function renderStats(){
+  const b = buildingCount(), up = upCountFn(), ac = achCountFn();
+  const clickShare = S.totalBread > 0 ? (S.clickBread / S.totalBread * 100) : 0;
+  const html =
+    sec('Bread', 
+      row('Bread in hand', fB(S.bread), 'gold') +
+      row('Bread per second', fB(BPS) + '/s', 'gold') +
+      row('Bread per click', fB(CLICKV)) +
+      row('Best bread per second', fB(S.bestBps) + '/s') +
+      row('Most bread held at once', fB(S.handBest)) +
+      row('Baked all time', fB(S.totalBread)) +
+      row('Spent all time', fB(S.spent))
+    ) +
+    sec('Clicking',
+      row('Bread clicks', fI(S.clicks)) +
+      row('Bread from clicks', fB(S.clickBread)) +
+      row('Share from clicking', clickShare.toFixed(2) + '%') +
+      row('Best single click', fB(S.bestClick || 0)) +
+      row('Click bonus from production', (M.clickBps * 100).toFixed(2) + '% of BPS')
+    ) +
+    sec('Bakery',
+      row('Buildings owned', fI(b)) +
+      row('Building types unlocked', fI(TOWERS.filter(t => S.t[t.id].seen).length) + ' / ' + fI(TOWERS.length)) +
+      row('Tower speed levels', fI(TOWERS.reduce((a,t) => a + S.t[t.id].lv, 0))) +
+      row('Tower prestiges', fI(S.prestiges), 'vio') +
+      row('Highest prestige tier', roman(Math.max.apply(null, TOWERS.map(t => S.t[t.id].tier))), 'vio')
+    ) +
+    sec('Progress',
+      row('Upgrades bought', fI(up) + ' / ' + fI(UPGRADES.length)) +
+      row('Upgrades available', fI(AVAIL.length)) +
+      row('Achievements', fI(ac) + ' / ' + fI(ACHS.length), 'grn') +
+      row('Achievement bonus', '+' + (M.achBonus * ac * 100).toFixed(0) + '%', 'grn') +
+      row('Prestige bonus', '+' + (M.prestigePerk * S.prestiges * 100).toFixed(0) + '%', 'vio') +
+      row('Global multiplier', '×' + fB(M.global), 'gold')
+    ) +
+    sec('Golden Loaves',
+      row('Golden Loaves clicked', fI(S.goldens)) +
+      row('Bread from Golden Loaves', fB(S.goldenBread)) +
+      row('Active buff', S.buffUntil > now() ? S.buffName + ' (' + Math.ceil((S.buffUntil - now())/1000) + 's)' : 'none',
+          S.buffUntil > now() ? 'gold' : '')
+    ) +
+    sec('Session',
+      row('Total play time', fmtTime(S.playtime)) +
+      row('This session', fmtTime(now() - sessionStart)) +
+      row('Bakery founded', fmtDate(S.started)) +
+      row('Bread earned while away', fB(S.offlineBread)) +
+      row('Last save', fmtDate(S.lastSave))
+    );
+  D.stats.innerHTML = html;
+}
+
+/* --------------------------- towers tab ------------------------ */
+function renderTowersTab(){
+  const owned = TOWERS.filter(t => S.t[t.id].count > 0 || S.t[t.id].seen);
+  if (!owned.length){ D.tow.innerHTML = '<p class="hint" style="padding:8px 2px">Buy your first building to see its tower breakdown here.</p>'; return; }
+  let h = '<div class="shelf-head" style="padding:0 2px;margin:2px 0 9px"><span>Tower Breakdown</span><span class="n">' +
+          fB(BPS) + '/s total</span></div>';
+  owned.forEach(t => {
+    const st = S.t[t.id], share = BPS > 0 ? st._out / BPS * 100 : 0;
+    h += '<div class="bld" style="animation:none;margin-bottom:8px"><div class="brow" style="cursor:default">' +
+      '<div class="bicon" style="filter:' + (st.count ? 'none' : 'grayscale(.7) brightness(.7)') + '">' + t.ic + '</div>' +
+      '<div class="bmain"><div class="bname">' + t.n +
+        (st.tier ? '<span class="pz">\u2605' + roman(st.tier) + '</span>' : '') + '</div>' +
+      '<div class="bsub"><span class="mono">' + fI(st.count) + ' owned</span><span class="b">·</span>' +
+        '<span class="mono">Lv ' + fI(st.lv) + '/' + LEVEL_CAP + '</span><span class="b">·</span>' +
+        '<span class="mono">' + fB(st._out) + '/s</span></div>' +
+      '<div class="bar" style="margin-top:6px"><i style="width:' + share.toFixed(2) + '%"></i></div>' +
+      '</div><div class="bright"><div class="bcount mono" style="font-size:15px">' + share.toFixed(1) + '%</div></div>' +
+      '</div></div>';
+  });
+  D.tow.innerHTML = h;
+}
+
+/* --------------------------- options --------------------------- */
+function renderOptions(){
+  D.opts.innerHTML =
+    '<div class="stat-sec"><h3>Settings</h3>' +
+      '<div class="opt"><div class="k">Click sound<s>Plays on every bread click</s></div><div class="sw' + (S.opt.sound?' on':'') + '" data-opt="sound"></div></div>' +
+      '<div class="opt"><div class="k">Volume<s id="volLab">' + Math.round(S.opt.vol*100) + '%</s></div><input type="range" id="vol" min="0" max="100" value="' + Math.round(S.opt.vol*100) + '"></div>' +
+      '<div class="opt"><div class="k">Particles<s>Crumbs and floating numbers</s></div><div class="sw' + (S.opt.particles?' on':'') + '" data-opt="particles"></div></div>' +
+      '<div class="opt"><div class="k">Golden Loaves<s>Rare bonus loaves drift across the screen</s></div><div class="sw' + (S.opt.golden?' on':'') + '" data-opt="golden"></div></div>' +
+    '</div>' +
+    '<div class="stat-sec"><h3>Save</h3>' +
+      '<button class="wbtn" id="btnSave">💾 Save now</button>' +
+      '<button class="wbtn" id="btnExport">📤 Export save</button>' +
+      '<button class="wbtn" id="btnImport">📥 Import save</button>' +
+      '<button class="wbtn danger" id="btnWipe">🔥 Delete everything</button>' +
+    '</div>' +
+    '<div class="stat-sec"><h3>About</h3><p class="hint" style="line-height:1.6;margin:0">' +
+      'BREAD CLICKER — one HTML file, no server, no tracking. Your bakery lives in this browser\'s local storage. ' +
+      'Buildings get faster with speed levels; at level ' + LEVEL_CAP + ' you can prestige them so every future level hits far harder.' +
+    '</p></div>';
+
+  D.opts.querySelectorAll('.sw').forEach(sw => sw.addEventListener('click', () => {
+    const k = sw.dataset.opt; S.opt[k] = !S.opt[k]; sw.classList.toggle('on', S.opt[k]);
+    if (k === 'sound' && S.opt.sound) playClick();
+    if (k === 'golden') scheduleGolden();
+  }));
+  const vol = D.opts.querySelector('#vol');
+  vol.addEventListener('input', () => {
+    S.opt.vol = vol.value / 100;
+    D.opts.querySelector('#volLab').textContent = vol.value + '%';
+  });
+  vol.addEventListener('change', () => playClick());
+  D.opts.querySelector('#btnSave').addEventListener('click', () => { save(); toast('💾','Saved','Your bakery is safe'); });
+  D.opts.querySelector('#btnExport').addEventListener('click', exportSave);
+  D.opts.querySelector('#btnImport').addEventListener('click', importSave);
+  D.opts.querySelector('#btnWipe').addEventListener('click', wipeSave);
+}
+
+/* =================================================================
+   9. GOLDEN LOAF
+   ================================================================= */
+let goldenT = 0;
+function scheduleGolden(){
+  clearTimeout(goldenT);
+  if (!S.opt.golden) { D.golden.classList.remove('show'); return; }
+  const base = (75 + Math.random() * 165) * 1000 * (M ? M.goldRate : 1);
+  goldenT = setTimeout(spawnGolden, base);
+}
+function spawnGolden(){
+  if (!S.opt.golden){ scheduleGolden(); return; }
+  const pad = 60;
+  D.golden.style.left = (pad + Math.random() * (innerWidth - pad*2 - 96)) + 'px';
+  D.golden.style.top  = (pad + Math.random() * (innerHeight - pad*2 - 96)) + 'px';
+  D.golden.classList.add('show');
+  const life = D.golden.animate([{opacity:0, transform:'scale(.3)'},{opacity:1, transform:'scale(1)', offset:.08},
+    {opacity:1, transform:'scale(1)', offset:.85},{opacity:0, transform:'scale(.4)'}],
+    {duration:13000, easing:'linear'});
+  life.onfinish = () => { D.golden.classList.remove('show'); scheduleGolden(); };
+  D.golden._life = life;
+}
+D.golden.addEventListener('click', e => {
+  if (!D.golden.classList.contains('show')) return;
+  D.golden.classList.remove('show');
+  if (D.golden._life) D.golden._life.cancel();
+  S.goldens++;
+  playClick(0.55);
+  burst(60, e.clientX, e.clientY);
+  const roll = Math.random();
+  if (roll < 0.45){
+    const gain = Math.max(13, Math.min(S.bread * 0.15, BPS * 240)) * M.goldVal;
+    earn(gain, 'golden');
+    floatNum('+' + fB(gain), e.clientX, e.clientY, true);
+    toast('🌟','Lucky Loaf!','+' + fB(gain) + ' bread','gold');
+  } else if (roll < 0.85){
+    S.buffMult = 7 * (M.goldVal > 1 ? 1.2 : 1); S.buffName = 'Frenzy ×' + fB(S.buffMult);
+    S.buffUntil = now() + 30000;
+    toast('⚡','Frenzy!','Production ×' + fB(S.buffMult) + ' for 30 seconds','epic');
+  } else {
+    S.buffMult = 777; S.buffName = 'Click Storm ×777'; S.buffUntil = now() + 8000;
+    toast('🌪️','Click Storm!','Everything ×777 for 8 seconds','epic');
+  }
+  recompute(); dirty.stats = dirty.ups = true;
+  scheduleGolden();
+});
+
+/* =================================================================
+   10. SAVE / LOAD
+   ================================================================= */
+function save(){
+  S.lastSave = now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
+}
+function normalize(o){
+  const f = freshState();
+  const defOpt = Object.assign({}, f.opt);
+  const s = Object.assign(f, o);
+  s.opt = Object.assign(defOpt, o.opt || {});
+  s.t = s.t || {};
+  TOWERS.forEach(t => { s.t[t.id] = Object.assign(freshTower(), s.t[t.id] || {}); });
+  s.ups = s.ups || {}; s.achs = s.achs || {};
+  ['bread','totalBread','spent','clicks','clickBread','offlineBread','goldenBread','playtime','bestBps','handBest','goldens','prestiges']
+    .forEach(k => { if (typeof s[k] !== 'number' || !isFinite(s[k])) s[k] = 0; });
+  if (s.buyAmt !== 'max' && ![1,10,100].includes(s.buyAmt)) s.buyAmt = 1;
+  return s;
+}
+function load(){
+  let raw = null;
+  try { raw = localStorage.getItem(SAVE_KEY); } catch(e){}
+  if (!raw) return false;
+  try { S = normalize(JSON.parse(raw)); } catch(e){ return false; }
+  return true;
+}
+function offlineCatchUp(){
+  const away = now() - (S.lastTick || now());
+  if (away < 60000) return;
+  recompute();
+  const capMs = M.offlineCap * 3600 * 1000;
+  const eff = Math.min(away, capMs);
+  const gain = BPS * (eff / 1000) * M.offline;
+  if (gain <= 0) return;
+  earn(gain, 'offline');
+  showModal(
+    '<div class="big">🌙</div><h3>While you were away</h3>' +
+    '<p>Your bakery kept working for <b>' + fmtTime(eff) + '</b>' +
+    (away > capMs ? ' <s style="text-decoration:none;opacity:.7">(capped from ' + fmtTime(away) + ')</s>' : '') +
+    ' at ' + Math.round(M.offline * 100) + '% efficiency.</p>' +
+    '<div class="val">+' + fB(gain) + ' bread</div>' +
+    '<div class="row"><button class="wbtn primary" data-close>Back to baking</button></div>');
+}
+function exportSave(){
+  save();
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  showModal('<div class="big">📤</div><h3>Export save</h3><p>Copy this code somewhere safe.</p>' +
+    '<textarea class="io" id="ioBox" readonly></textarea>' +
+    '<div class="row"><button class="wbtn" data-close>Close</button><button class="wbtn primary" id="ioCopy">Copy</button></div>');
+  const box = $('#ioBox'); box.value = code;
+  $('#ioCopy').addEventListener('click', () => {
+    box.select();
+    navigator.clipboard ? navigator.clipboard.writeText(code).then(() => toast('📋','Copied','Save code on your clipboard'))
+                        : document.execCommand('copy');
+  });
+}
+function importSave(){
+  showModal('<div class="big">📥</div><h3>Import save</h3><p>Paste a save code. This replaces your current bakery.</p>' +
+    '<textarea class="io" id="ioBox" placeholder="paste here..."></textarea>' +
+    '<div class="row"><button class="wbtn" data-close>Cancel</button><button class="wbtn primary" id="ioGo">Import</button></div>');
+  $('#ioGo').addEventListener('click', () => {
+    try {
+      const txt = $('#ioBox').value.trim();
+      const obj = JSON.parse(decodeURIComponent(escape(atob(txt))));
+      S = normalize(obj); save(); location.reload();
+    } catch(e){ toast('⚠️','Import failed','That code could not be read'); }
+  });
+}
+function wipeSave(){
+  showModal('<div class="big">🔥</div><h3>Delete everything?</h3>' +
+    '<p>Your entire bakery — bread, buildings, upgrades and achievements — will be gone forever.</p>' +
+    '<div class="row"><button class="wbtn" data-close>Keep baking</button>' +
+    '<button class="wbtn danger" id="ioWipe">Delete it all</button></div>');
+  $('#ioWipe').addEventListener('click', () => {
+    try { localStorage.removeItem(SAVE_KEY); } catch(e){}
+    location.reload();
+  });
+}
+function showModal(html){
+  D.modalBox.innerHTML = html;
+  D.modal.classList.add('on');
+  D.modalBox.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', hideModal));
+}
+function hideModal(){ D.modal.classList.remove('on'); }
+D.modal.addEventListener('click', e => { if (e.target === D.modal) hideModal(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') { hideModal(); hideTip(); } });
+
+/* =================================================================
+   11. PANELS, TABS, BUY AMOUNT
+   ================================================================= */
+function bindTabs(bar){
+  bar.addEventListener('click', e => {
+    const b = e.target.closest('.tab'); if (!b) return;
+    bar.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === b));
+    const panes = bar.parentElement.querySelector('.panes');
+    panes.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === b.dataset.pane));
+    dirty.stats = dirty.tow = true;
+  });
+}
+bindTabs($('#leftTabs')); bindTabs($('#rightTabs'));
+
+function toggleSide(side){
+  const cls = side === 'l' ? 'l-closed' : 'r-closed';
+  const closed = D.app.classList.toggle(cls);
+  S.opt[side + 'Open'] = !closed;
+  hideTip();
+}
+$('#edgeL').addEventListener('click', () => toggleSide('l'));
+$('#edgeR').addEventListener('click', () => toggleSide('r'));
+$('#leftClose').addEventListener('click', () => toggleSide('l'));
+$('#rightClose').addEventListener('click', () => toggleSide('r'));
+
+$('#buySeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S.buyAmt = b.dataset.buy === 'max' ? 'max' : +b.dataset.buy;
+  $('#buySeg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  dirty.bld = true;
+});
+
+const HINTS = [
+  'Click the loaf. Build an empire of yeast.',
+  'Tip: expand a building with the ▾ arrow to level it up.',
+  'Tip: a building at speed level 50 can prestige — future levels get far stronger.',
+  'Upgrades appear on their own. Hover one to see what it does.',
+  'Every achievement permanently boosts all production.',
+  'Golden Loaves drift by now and then. Do not let them get away.',
+  'Tip: MAX buys as many buildings as your bread allows.',
+  'The starter is older than your civilisation, and it is hungry.',
+  'Somewhere, a toaster is working the night shift for you.'
+];
+let hintI = 0;
+setInterval(() => {
+  hintI = (hintI + 1) % HINTS.length;
+  D.foot.animate([{opacity:1},{opacity:0}], {duration:280}).onfinish = () => {
+    D.foot.textContent = HINTS[hintI];
+    D.foot.animate([{opacity:0},{opacity:1}], {duration:280});
+  };
+}, 17000);
+
+/* =================================================================
+   12. MAIN LOOP
+   ================================================================= */
+let sessionStart = now();
+let lastFrame = performance.now(), accBld = 0, accSlow = 0, accVerySlow = 0, avKey = '';
+let hadBuff = false;
+
+function frame(ts){
+  const dt = Math.min((ts - lastFrame) / 1000, 2); lastFrame = ts;
+  S.playtime += dt * 1000; S.lastTick = now();
+
+  if (BPS > 0) earn(BPS * dt);
+
+  const buffOn = S.buffUntil > now();
+  if (buffOn !== hadBuff){ hadBuff = buffOn; recompute(); dirty.stats = true; }
+  D.buffChip.style.display = buffOn ? 'flex' : 'none';
+  D.buffChip.classList.toggle('buff', buffOn);
+  if (buffOn) D.buffTxt.textContent = S.buffName + ' · ' + Math.ceil((S.buffUntil - now()) / 1000) + 's';
+
+  D.bread.textContent = fB(S.bread);
+  D.bps.textContent = fB(BPS);
+  D.chipBps.textContent = fB(BPS);
+  D.chipClick.textContent = fB(CLICKV);
+
+  accBld += dt; accSlow += dt; accVerySlow += dt;
+
+  if (dirty.ups){ dirty.ups = false; renderUpgrades(); avKey = AVAIL.map(u => u.uid).join(','); }
+  else refreshUpgradeAfford();
+
+  if (accBld > 0.1){
+    accBld = 0;
+    if (dirty.bld){ dirty.bld = false; renderBuildings(); }
+    else updateBuildings();
+  }
+
+  if (accSlow > 0.4){
+    accSlow = 0;
+    recompute();
+    checkAchievements();
+    computeAvail();
+    const k = AVAIL.map(u => u.uid).join(',');
+    if (k !== avKey){ avKey = k; renderUpgrades(); }
+    if (dirty.ach){ dirty.ach = false; }
+    updateAchGrid();
+    if ($('#pStats').classList.contains('on')) renderStats();
+    renderBuildings();
+  }
+
+  if (accVerySlow > 1){
+    accVerySlow = 0;
+    if ($('#pTow').classList.contains('on')) renderTowersTab();
+  }
+
+  requestAnimationFrame(frame);
+}
+
+/* =================================================================
+   13. BOOT
+   ================================================================= */
+function boot(){
+  const had = load();
+  if (S.bestClick === undefined) S.bestClick = 0;
+  recompute();
+  if (had) offlineCatchUp();
+  sessionStart = now();
+
+  D.app.classList.toggle('l-closed', S.opt.lOpen === false);
+  D.app.classList.toggle('r-closed', S.opt.rOpen === false);
+  $('#buySeg').querySelectorAll('button').forEach(b => {
+    b.classList.toggle('on', (b.dataset.buy === 'max' ? 'max' : +b.dataset.buy) === S.buyAmt);
+  });
+
+  TOWERS.forEach(t => { if (S.t[t.id].count > 0) S.t[t.id].seen = 1; });
+  renderAchGrid();
+  renderOptions();
+  renderBuildings();
+  renderUpgrades();
+  renderStats();
+  renderTowersTab();
+  checkAchievements();
+  scheduleGolden();
+
+  if (!had) setTimeout(() => toast('🍞','Welcome to Bread Clicker','Click the loaf to bake your first bread','gold'), 700);
+  requestAnimationFrame(t => { lastFrame = t; frame(t); });
+}
+
+setInterval(save, 20000);
+addEventListener('beforeunload', save);
+addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+addEventListener('resize', hideTip);
+document.addEventListener('scroll', hideTip, true);
+
+boot();
+</script>
+</body>
+</html>
