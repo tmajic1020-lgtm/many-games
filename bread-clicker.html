@@ -418,7 +418,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:0;border-radiu
 
 /* =========================== tooltip =========================== */
 #tip{
-  position:fixed; z-index:120; pointer-events:none; width:262px; max-width:calc(100vw - 24px);
+  position:fixed; z-index:200; pointer-events:none; width:262px; max-width:calc(100vw - 24px);
   border-radius:var(--r); padding:12px 13px; opacity:0; transform:scale(.9) translateY(6px);
   transform-origin:var(--tox,100%) var(--toy,50%);
   transition:opacity .2s var(--ease), transform .3s var(--ease);
@@ -444,7 +444,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:0;border-radiu
 #tip .when.locked{color:var(--dim2)}
 
 /* ============================ toasts =========================== */
-#toasts{position:fixed; left:50%; bottom:22px; translate:-50% 0; z-index:130; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none}
+#toasts{position:fixed; left:50%; bottom:22px; translate:-50% 0; z-index:170; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none}
 .toast{
   display:flex; align-items:center; gap:10px; padding:9px 15px 9px 10px; border-radius:99px;
   background:linear-gradient(120deg,rgba(48,35,25,.97),rgba(28,20,15,.97));
@@ -461,18 +461,30 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:0;border-radiu
 .toast.gold{border-color:rgba(255,196,99,.5)}
 .toast.epic{border-color:rgba(185,139,255,.5)}
 
-/* =========================== golden loaf ======================= */
-#golden{
-  position:fixed; z-index:115; width:96px; height:96px; cursor:pointer; display:none; place-items:center;
-  filter:drop-shadow(0 0 24px rgba(255,205,90,.85)); animation:goldSpin 3.4s linear infinite;
+/* ========================== wanderers =========================== */
+#wanderers{position:fixed; inset:0; z-index:115; pointer-events:none}
+.wanderer{
+  position:absolute; left:0; top:0; cursor:pointer; pointer-events:auto; will-change:transform;
+  filter:drop-shadow(0 0 22px rgba(255,205,90,.8));
+  transition:filter .2s var(--ease);
 }
-@keyframes goldSpin{0%{transform:rotate(-9deg) scale(1)}50%{transform:rotate(9deg) scale(1.09)}100%{transform:rotate(-9deg) scale(1)}}
-#golden.show{display:grid}
-#golden svg{width:100%;height:100%}
+.wanderer::after{
+  content:''; position:absolute; inset:-14%; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, rgba(255,214,120,.35), transparent 68%);
+  animation:wanderPulse 1.8s ease-in-out infinite;
+}
+.wanderer.sprite{filter:drop-shadow(0 0 22px rgba(255,224,131,.85))}
+.wanderer.bloom{filter:drop-shadow(0 0 24px rgba(120,240,205,.8))}
+.wanderer.bloom::after{background:radial-gradient(circle, rgba(120,240,205,.35), transparent 68%)}
+.wanderer:hover{filter:drop-shadow(0 0 34px rgba(255,236,170,1)) brightness(1.12)}
+.wanderer svg{width:100%; height:100%; position:relative; z-index:1;
+  animation:wanderSpin 3.2s ease-in-out infinite}
+@keyframes wanderSpin{0%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.07)}100%{transform:rotate(-8deg) scale(1)}}
+@keyframes wanderPulse{0%,100%{opacity:.5;transform:scale(.9)}50%{opacity:1;transform:scale(1.12)}}
 
 /* ============================ modal ============================ */
 .modal{
-  position:fixed; inset:0; z-index:140; display:grid; place-items:center; padding:20px;
+  position:fixed; inset:0; z-index:165; display:grid; place-items:center; padding:20px;
   background:rgba(8,5,4,.7); backdrop-filter:blur(9px); opacity:0; visibility:hidden;
   transition:opacity .32s var(--ease), visibility .32s;
 }
@@ -495,6 +507,189 @@ textarea.io{
   width:100%; height:110px; border-radius:11px; background:rgba(0,0,0,.4); color:var(--dim);
   border:1px solid var(--line); padding:9px; font-family:'JetBrains Mono',monospace; font-size:10.5px; resize:none;
 }
+
+kbd{
+  display:inline-block; padding:2px 6px; margin:0 1px; border-radius:6px; font-family:'JetBrains Mono',monospace;
+  font-size:10px; font-weight:700; color:var(--txt); background:rgba(255,255,255,.07);
+  border:1px solid var(--line2); box-shadow:0 2px 0 rgba(0,0,0,.35);
+}
+.icon-btn.on{background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#25170a; border-color:transparent}
+
+/* =========================== combo meter ======================= */
+.combo{
+  margin:9px auto 0; width:min(260px,72vw); opacity:0; transform:translateY(-6px) scale(.96);
+  transition:opacity .28s var(--ease), transform .32s var(--ease);
+}
+.combo.on{opacity:1; transform:none}
+.combo-top{display:flex; align-items:baseline; justify-content:center; gap:9px; margin-bottom:5px}
+.combo-top .cx{font-size:15px; font-weight:800; color:var(--gold); letter-spacing:.02em}
+.combo-top .cn{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim2); font-weight:800}
+.combo-top .cn b{color:var(--txt)}
+.combo-bar{height:5px; border-radius:99px; background:rgba(0,0,0,.4); overflow:hidden; border:1px solid var(--line)}
+.combo-bar i{
+  display:block; height:100%; width:100%; border-radius:99px; transform-origin:left center;
+  background:linear-gradient(90deg,var(--gold2),var(--gold),#fff1cf);
+  box-shadow:0 0 14px rgba(255,190,90,.7);
+}
+.combo.hot .combo-top .cx{color:#fff2cf; text-shadow:0 0 16px var(--gold2)}
+.float-num.auto{opacity:.65; font-size:15px}
+
+/* ========================== automation ========================= */
+.autorow{display:flex; gap:6px; align-items:center; padding:2px 2px 8px; flex-wrap:wrap}
+.autorow[hidden]{display:none}
+.autotoggles{display:flex; gap:5px; flex-wrap:wrap; margin-left:auto}
+.atog{
+  display:flex; align-items:center; gap:5px; padding:4px 9px; border-radius:99px; cursor:pointer;
+  border:1px solid var(--line); background:var(--panel); color:var(--dim2);
+  font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  transition:.25s var(--ease);
+}
+.atog:hover{color:var(--txt); border-color:var(--line2)}
+.atog.on{
+  color:#25170a; border-color:transparent;
+  background:linear-gradient(135deg,var(--good),#4fc98a);
+}
+.atog i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55}
+.atog.on i{opacity:1; animation:pulse 1.6s infinite}
+
+/* ===================== upgrade shelf variants ================== */
+.up.tier-syn{background:linear-gradient(150deg,rgba(255,160,210,.20),rgba(255,90,170,.08))}
+.up.tier-asc{background:linear-gradient(150deg,rgba(185,139,255,.26),rgba(120,90,255,.10)); border-color:rgba(185,139,255,.45)}
+
+/* ========================= ascension pane ====================== */
+.asc-hero{
+  position:relative; overflow:hidden; border-radius:var(--r); padding:15px 14px 14px; margin:2px 0 12px;
+  border:1px solid rgba(185,139,255,.3);
+  background:linear-gradient(150deg,rgba(185,139,255,.18),rgba(255,122,217,.06));
+}
+.asc-hero::after{
+  content:''; position:absolute; inset:-40% -20% auto auto; width:180px; height:180px; border-radius:50%;
+  background:radial-gradient(circle,rgba(185,139,255,.35),transparent 70%); pointer-events:none;
+  animation:breathe 6s ease-in-out infinite;
+}
+.asc-hero .lab{font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--dim2); font-weight:800}
+.asc-hero .big{
+  font-size:34px; font-weight:800; line-height:1.05; margin:3px 0 2px;
+  background:linear-gradient(180deg,#fff0ff,var(--violet) 70%,#ff7ad9);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.asc-hero .sub{font-size:12px; color:var(--dim); margin-bottom:10px}
+.asc-hero .sub b{color:var(--txt)}
+.asc-bar{height:7px; border-radius:99px; background:rgba(0,0,0,.35); overflow:hidden; border:1px solid var(--line)}
+.asc-bar i{display:block; height:100%; border-radius:99px; width:0%;
+  background:linear-gradient(90deg,var(--violet),#ff7ad9); transition:width .5s var(--ease);
+  box-shadow:0 0 12px rgba(185,139,255,.6)}
+.asc-actions{display:flex; gap:7px; margin-top:11px}
+.asc-actions .wbtn{margin-top:0; white-space:nowrap; padding:10px 6px}
+.wbtn.vio{border-color:rgba(185,139,255,.45); color:#e9dcff;
+  background:linear-gradient(135deg,rgba(185,139,255,.28),rgba(255,122,217,.12))}
+.wbtn.vio:hover{background:linear-gradient(135deg,rgba(185,139,255,.45),rgba(255,122,217,.22))}
+.wbtn:disabled{opacity:.45; cursor:not-allowed; transform:none!important}
+.perk-mini{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; padding:2px}
+.perk-mini .pm{
+  aspect-ratio:1; border-radius:11px; display:grid; place-items:center; font-size:18px;
+  border:1px solid var(--line); background:var(--panel); filter:grayscale(1) brightness(.45);
+  transition:.25s var(--ease); cursor:help;
+}
+.perk-mini .pm.got{filter:none; border-color:rgba(185,139,255,.45);
+  background:linear-gradient(150deg,rgba(185,139,255,.22),rgba(255,122,217,.07))}
+.perk-mini .pm:hover{transform:translateY(-3px) scale(1.08); z-index:3}
+
+/* =========================== sparkline ========================= */
+.spark{
+  position:relative; height:66px; margin:2px 0 6px; border-radius:11px; overflow:hidden;
+  border:1px solid var(--line); background:linear-gradient(180deg,rgba(255,196,99,.06),transparent);
+}
+.spark svg{position:absolute; inset:0; width:100%; height:100%}
+.spark .lbl{
+  position:absolute; left:8px; top:6px; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--dim2); font-weight:800; pointer-events:none;
+}
+.spark .hi{position:absolute; right:8px; top:6px; font-size:10.5px; font-weight:700; color:var(--gold)}
+
+/* ========================= starter vault ======================= */
+.vault{
+  position:fixed; inset:0; z-index:150; display:grid; place-items:center; padding:16px;
+  background:rgba(8,5,12,.78); backdrop-filter:blur(12px);
+  opacity:0; visibility:hidden; transition:opacity .35s var(--ease), visibility .35s;
+}
+.vault.on{opacity:1; visibility:visible}
+.vault-box{
+  width:min(980px,100%); max-height:min(92dvh,900px); display:flex; flex-direction:column;
+  border-radius:22px; overflow:hidden; border:1px solid rgba(185,139,255,.32);
+  background:linear-gradient(165deg,rgba(38,28,46,.98),rgba(20,15,22,.99));
+  box-shadow:0 50px 110px -34px #000, inset 0 1px 0 rgba(255,255,255,.06);
+  transform:scale(.93) translateY(18px); transition:transform .45s var(--ease);
+}
+.vault.on .vault-box{transform:none}
+.vault-head{display:flex; align-items:center; gap:14px; padding:16px 18px; border-bottom:1px solid var(--line)}
+.vault-title{display:flex; align-items:center; gap:12px; flex:1 1 auto; min-width:0}
+.vault-title .vi{
+  width:44px;height:44px;flex:0 0 auto;border-radius:13px;display:grid;place-items:center;font-size:23px;
+  background:linear-gradient(150deg,rgba(185,139,255,.28),rgba(255,122,217,.1));
+  border:1px solid rgba(185,139,255,.35);
+}
+.vault-title h3{margin:0; font-size:18px; font-weight:800; letter-spacing:.01em}
+.vault-title p{margin:2px 0 0; font-size:11.5px; color:var(--dim2)}
+.vault-bal{text-align:right; flex:0 0 auto}
+.vault-bal .k{display:block; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim2); font-weight:800}
+.vault-bal b{font-size:22px; font-weight:800; color:var(--violet)}
+.vault-body{flex:1 1 auto; min-height:0; padding:16px 18px 6px}
+.tree{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px}
+.branch{position:relative; display:flex; flex-direction:column; align-items:center; gap:0}
+.branch-head{
+  display:flex; align-items:center; gap:7px; margin-bottom:9px; font-size:10.5px; font-weight:800;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--dim2);
+}
+.branch-head .bi{font-size:15px}
+.perk-link{width:2px; height:13px; background:linear-gradient(180deg,var(--line),var(--line2)); position:relative}
+.perk-link.lit{background:linear-gradient(180deg,rgba(185,139,255,.5),rgba(255,122,217,.7)); box-shadow:0 0 10px rgba(185,139,255,.55)}
+.perk{
+  position:relative; width:100%; max-width:132px; border-radius:15px; cursor:pointer; padding:9px 9px 8px;
+  border:1px solid var(--line); background:var(--panel); text-align:center;
+  transition:transform .26s var(--ease), box-shadow .26s var(--ease), border-color .26s var(--ease), background .26s var(--ease);
+}
+.perk .pic{
+  width:37px;height:37px;margin:0 auto 5px;border-radius:12px;display:grid;place-items:center;font-size:21px;
+  background:rgba(0,0,0,.28); border:1px solid var(--line); transition:.26s var(--ease);
+}
+.perk .pn{font-size:11.5px; font-weight:700; line-height:1.2}
+.perk .pc{
+  margin-top:5px; font-size:11px; font-weight:800; color:var(--dim2);
+  display:flex; align-items:center; justify-content:center; gap:4px;
+}
+.perk.locked{opacity:.42; filter:grayscale(.85); cursor:not-allowed}
+.perk.buyable{border-color:rgba(185,139,255,.5); background:linear-gradient(150deg,rgba(185,139,255,.16),rgba(255,122,217,.05))}
+.perk.buyable .pc{color:var(--violet)}
+.perk.buyable:hover{transform:translateY(-4px) scale(1.035); box-shadow:0 14px 30px -14px rgba(185,139,255,.9)}
+.perk.poor{border-color:rgba(255,122,107,.28)}
+.perk.poor .pc{color:var(--bad)}
+.perk.got{
+  border-color:rgba(185,139,255,.6);
+  background:linear-gradient(150deg,rgba(185,139,255,.3),rgba(255,122,217,.1));
+}
+.perk.got .pic{background:rgba(185,139,255,.2); border-color:rgba(185,139,255,.45)}
+.perk.got .pc{color:#dcc9ff}
+.perk.got::after{
+  content:'✓'; position:absolute; top:-7px; right:-7px; width:22px; height:22px; border-radius:50%;
+  display:grid; place-items:center; font-size:12px; font-weight:900; color:#23122e;
+  background:linear-gradient(135deg,var(--violet),#ff7ad9); box-shadow:0 5px 14px -4px rgba(0,0,0,.8);
+}
+.perk.just{animation:perkPop .65s var(--ease)}
+@keyframes perkPop{0%{transform:scale(1)}40%{transform:scale(1.16) rotate(-3deg)}100%{transform:none}}
+.vault-foot{
+  display:flex; align-items:center; gap:14px; padding:14px 18px; border-top:1px solid var(--line);
+  background:rgba(0,0,0,.2);
+}
+.vault-foot-info{flex:1 1 auto; min-width:0; font-size:12px; color:var(--dim); line-height:1.5}
+.vault-foot-info b{color:var(--txt)}
+.vault-foot-info .warn{color:var(--gold)}
+.wbtn.ascend{
+  margin-top:0; flex:0 0 auto; width:auto; padding:12px 26px; font-size:13px; letter-spacing:.1em;
+  text-transform:uppercase; background:linear-gradient(135deg,var(--violet),#ff7ad9); color:#22102c;
+  border-color:transparent;
+}
+.wbtn.ascend:hover:not(:disabled){box-shadow:0 14px 34px -14px rgba(185,139,255,1)}
 
 /* ============================ mobile =========================== */
 @media (max-width:920px){
@@ -527,6 +722,24 @@ textarea.io{
   .brand{font-size:12px}
   .chip{padding:5px 9px; font-size:11px}
   #toasts{bottom:auto; top:12px}
+  .combo{width:min(230px,80vw); margin-top:6px}
+  .combo-top .cx{font-size:13px}
+  .tree{grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+  .vault{padding:8px}
+  .vault-box{max-height:94dvh; border-radius:16px}
+  .vault-head{padding:12px; gap:9px; flex-wrap:wrap}
+  .vault-title h3{font-size:16px}
+  .vault-title p{display:none}
+  .vault-bal b{font-size:18px}
+  .vault-body{padding:12px 12px 4px}
+  .vault-foot{padding:10px 12px; gap:9px}
+  .vault-foot-info{font-size:11px}
+  .wbtn.ascend{padding:10px 16px; font-size:12px}
+  .perk{max-width:none; padding:9px 7px 8px}
+  .perk .pic{width:34px;height:34px;font-size:18px}
+  .perk .pn{font-size:10.5px}
+  .asc-hero .big{font-size:28px}
+  .autotoggles{margin-left:0}
 }
 @media (max-width:520px){
   .topchips .chip.hide-s{display:none}
@@ -545,6 +758,9 @@ textarea.io{
     <div class="side-inner">
       <div class="side-head">
         <h2>The <b>Ledger</b></h2>
+        <button class="icon-btn" id="optBtn" title="Options" aria-label="Options">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.3a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.7 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9.1a1.7 1.7 0 0 0 1-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9.1a1.7 1.7 0 0 0 1.56 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z"/></svg>
+        </button>
         <button class="icon-btn" id="leftClose" title="Collapse panel" aria-label="Collapse left panel">
           <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
         </button>
@@ -552,7 +768,7 @@ textarea.io{
       <div class="tabs" id="leftTabs">
         <button class="tab on" data-pane="pStats"><span class="tab-bg"></span>Stats</button>
         <button class="tab" data-pane="pAch"><span class="tab-bg"></span>Achievements <span class="cnt" id="achCnt">0</span></button>
-        <button class="tab" data-pane="pOpt"><span class="tab-bg"></span>Options</button>
+        <button class="tab" data-pane="pAsc"><span class="tab-bg"></span>Ascension <span class="cnt" id="ascCnt">0</span></button>
       </div>
       <div class="panes">
         <div class="pane scroll on" id="pStats"></div>
@@ -563,6 +779,7 @@ textarea.io{
           <div class="ach-grid" id="achGrid"></div>
           <p class="hint" style="margin:14px 2px 4px;line-height:1.5">Each trophy permanently boosts all bread production by <b style="color:var(--good)">+1%</b>. Hover a trophy for details.</p>
         </div>
+        <div class="pane scroll" id="pAsc"></div>
         <div class="pane scroll" id="pOpt"></div>
       </div>
     </div>
@@ -585,6 +802,11 @@ textarea.io{
       <b class="amount mono" id="breadAmt">0.00</b>
       <span class="unit">BREAD</span>
       <div class="rate">baking <b id="bpsTxt" class="mono">0.00</b> per second</div>
+      <div class="combo" id="combo">
+        <div class="combo-top"><span class="cx mono" id="comboMult">×1.00</span>
+          <span class="cn">combo <b class="mono" id="comboN">0</b></span></div>
+        <div class="combo-bar"><i id="comboBar"></i></div>
+      </div>
     </div>
 
     <div class="bread-wrap" id="breadWrap">
@@ -665,6 +887,10 @@ textarea.io{
       </div>
       <div class="panes">
         <div class="pane scroll on" id="pBld">
+          <div class="autorow" id="autoRow" hidden>
+            <span class="lbl">Auto</span>
+            <div class="autotoggles" id="autoToggles"></div>
+          </div>
           <div class="buyrow">
             <span class="lbl">Buy</span>
             <div class="seg" id="buySeg">
@@ -684,19 +910,29 @@ textarea.io{
 
 <div id="tip" role="tooltip"></div>
 <div id="toasts"></div>
-<div id="golden" title="Golden Loaf!">
-  <svg viewBox="0 0 100 100">
-    <defs>
-      <radialGradient id="gg" cx="35%" cy="30%">
-        <stop offset="0" stop-color="#fff6c9"/><stop offset="55%" stop-color="#ffd257"/><stop offset="100%" stop-color="#e08a1e"/>
-      </radialGradient>
-    </defs>
-    <path d="M12 62C12 36 28 22 50 22s38 14 38 40c0 9-7 15-17 15H29c-10 0-17-6-17-15Z" fill="url(#gg)" stroke="#b46a12" stroke-width="2.5"/>
-    <path d="M30 40c4-6 9-9 14-9M46 38c5-6 10-8 15-8" stroke="#fff3c4" stroke-width="4" stroke-linecap="round" fill="none" opacity=".85"/>
-  </svg>
-</div>
+<div id="wanderers" aria-hidden="true"></div>
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<div class="vault" id="vault" aria-hidden="true">
+  <div class="vault-box">
+    <div class="vault-head">
+      <div class="vault-title">
+        <span class="vi">🧫</span>
+        <div><h3>Starter Vault</h3><p>Perks bought here survive every ascension.</p></div>
+      </div>
+      <div class="vault-bal"><span class="k">Starter Yeast</span><b class="mono" id="vaultYeast">0</b></div>
+      <button class="icon-btn" id="vaultClose" title="Close" aria-label="Close the vault">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="vault-body scroll" id="vaultBody"></div>
+    <div class="vault-foot">
+      <div class="vault-foot-info" id="vaultInfo"></div>
+      <button class="wbtn primary ascend" id="vaultAscend">Ascend</button>
+    </div>
+  </div>
+</div>
 
 <script>
 "use strict";
@@ -771,8 +1007,16 @@ const TOWERS = [
   {id:'dimension',n:'Bread Dimension',   ic:'🌌', base:3.6e14, bps:5.6e8,  d:'An entire plane of existence made of focaccia.'},
   {id:'yeastverse',n:'Yeastverse',       ic:'♾️', base:5.4e15, bps:3.8e9,  d:'It is rising. It will not stop rising.'},
   {id:'chrono',  n:'Chrono Oven',        ic:'⏳', base:8.1e16, bps:2.6e10, d:'Bakes the loaf yesterday, delivers it now.'},
-  {id:'godhead', n:'Loaf Godhead',       ic:'👑', base:1.2e18, bps:1.8e11, d:'In the beginning there was the Crumb, and the Crumb was good.'}
+  {id:'godhead', n:'Loaf Godhead',       ic:'👑', base:1.2e18, bps:1.8e11, d:'In the beginning there was the Crumb, and the Crumb was good.'},
+  /* --- added after launch; keep appended so saved upgrade ids stay stable --- */
+  {id:'titan',   n:'Dough Titan',         ic:'🗿', base:1.9e19, bps:1.3e12, d:'It sleeps beneath the proving drawer. Do not wake it before noon.'},
+  {id:'star',    n:'Sourdough Star',      ic:'⭐', base:3.0e20, bps:9.0e12, d:'Fusion, but the hydrogen is levain.'},
+  {id:'nebula',  n:'Bread Nebula',        ic:'🌠', base:4.8e21, bps:6.3e13, d:'A stellar nursery where new loaves are born.'},
+  {id:'cosmos',  n:'Crumb Cosmos',        ic:'🪐', base:7.7e22, bps:4.4e14, d:'Rings of toast orbit a core of warm butter.'},
+  {id:'bakening',n:'The Bakening',        ic:'🌋', base:1.2e24, bps:3.1e15, d:'Prophesied in every cookbook. Mostly the dessert chapters.'},
+  {id:'omniloaf',n:'Omniloaf',            ic:'🫓', base:2.0e25, bps:2.2e16, d:'Every loaf that ever was, folded into one. It is still warm.'}
 ];
+const V1_TOWERS = 16;                      // towers present at launch (upgrade-id stability)
 const T_BY_ID = {}; TOWERS.forEach((t,i)=>{ t.idx=i; T_BY_ID[t.id]=t; });
 
 const LEVEL_CAP = 50;                                   // speed levels per prestige tier
@@ -834,7 +1078,7 @@ const TIER_NAMES = ['Polished','Reinforced','Automated','Enchanted','Quantum','A
 const TIER_REQ   = [1, 5, 25, 50, 100, 150, 200, 300];
 const TIER_COST  = [12, 120, 2000, 4e4, 1e6, 4e7, 2e9, 1e11];
 const TIER_ICON  = ['✨','🔩','⚙️','🪄','⚛️','🌟','🔱','🌈'];
-TOWERS.forEach(t=>{
+function tierUpgradesFor(t){
   TIER_NAMES.forEach((tn,i)=>U({
     name:tn+' '+t.n, ic:t.ic, tic:TIER_ICON[i], cost:t.base*TIER_COST[i], kind:'tower', cls:'tier-tower',
     desc:'<em>'+t.n+'s</em> produce <em>twice</em> as much bread.',
@@ -843,7 +1087,8 @@ TOWERS.forEach(t=>{
     hint:'Requires '+fI(TIER_REQ[i])+' '+t.n+(TIER_REQ[i]===1?'':'s'),
     apply:M=>{ M.tower[t.id] *= 2; }
   }));
-});
+}
+TOWERS.slice(0, V1_TOWERS).forEach(tierUpgradesFor);
 
 /* --- global / synergy upgrades --- */
 U({name:"Bakers' Union", ic:'🤝', cost:5e5, kind:'global', cls:'tier-global',
@@ -895,6 +1140,87 @@ U({name:'Overnight Proof', ic:'🌙', cost:1e9, kind:'global', cls:'tier-global'
    flav:'Sleep is just a long fermentation.',
    req:S=>S.playtime >= 900000, hint:'Play for 15 minutes', apply:M=>{ M.offline = 0.85; M.offlineCap = 24; }});
 
+/* -----------------------------------------------------------------
+   Everything below was added after launch. New upgrades are always
+   APPENDED so the numeric ids inside existing saves keep their meaning.
+   ----------------------------------------------------------------- */
+TOWERS.slice(V1_TOWERS).forEach(tierUpgradesFor);
+
+/* --- synergies: a building quietly boosts an older cousin --- */
+for (let i = 0; i + 2 < TOWERS.length; i++){
+  const a = TOWERS[i], b = TOWERS[i+2];
+  U({name:a.n + ' ↔ ' + b.n, ic:'🔗', tic:'🧩', cost:b.base * 70, kind:'syn', cls:'tier-syn',
+     desc:'Every <em>' + b.n + '</em> makes your <em>' + a.n + 's</em> <em>+0.25%</em> stronger.',
+     flav:'Two halves of the same sandwich.',
+     req:S=>S.t[a.id].count >= 15 && S.t[b.id].count >= 15,
+     hint:'Requires 15 ' + a.n + 's and 15 ' + b.n + 's',
+     apply:M=>{ M.tower[a.id] *= 1 + 0.0025 * S.t[b.id].count; }});
+}
+
+/* --- combo & crit --- */
+U({name:'Combo Conductor', ic:'🎼', tic:'⚡', cost:2.5e6, kind:'click', cls:'tier-click',
+   desc:'Your click combo can climb <em>25 higher</em>.', flav:'And a one, and a two, and a...',
+   req:S=>S.bestCombo >= 25, hint:'Reach a 25 click combo', apply:M=>{ M.comboCap += 25; }});
+U({name:'Metronome Hands', ic:'⏱️', tic:'⚡', cost:9e8, kind:'click', cls:'tier-click',
+   desc:'Combo hits stay alive <em>0.5s</em> longer and each step is worth <em>+1%</em> more.',
+   flav:'Tick. Tock. Loaf.',
+   req:S=>S.bestCombo >= 60, hint:'Reach a 60 click combo',
+   apply:M=>{ M.comboWindow += 500; M.comboStep += 0.01; }});
+U({name:'Perfect Score', ic:'🎯', tic:'⚡', cost:4e10, kind:'click', cls:'tier-click',
+   desc:'Clicks gain <em>+2%</em> for every achievement you own.', flav:'Show-off.',
+   req:S=>S.bestCombo >= 100 && S.achCount >= 30, hint:'Reach a 100 combo with 30 achievements',
+   apply:M=>{ M.clickPerAch += 0.02; }});
+U({name:'Crit Bakery', ic:'✦', tic:'🔥', cost:3e7, kind:'click', cls:'tier-click',
+   desc:'Lucky Bites happen <em>three times</em> as often.', flav:'Statistically suspicious.',
+   req:S=>S.crits >= 20, hint:'Land 20 Lucky Bites', apply:M=>{ M.critChance += 0.04; }});
+U({name:'Shattercrust', ic:'💥', tic:'🔥', cost:8e11, kind:'click', cls:'tier-click',
+   desc:'Lucky Bites are worth <em>×20</em> instead of ×7.', flav:'The crust never stood a chance.',
+   req:S=>S.crits >= 150, hint:'Land 150 Lucky Bites', apply:M=>{ M.critMult += 13; }});
+
+/* --- economy quality of life --- */
+U({name:'Bulk Blueprints', ic:'📐', tic:'💰', cost:6e8, kind:'global', cls:'tier-global',
+   desc:'Tower speed levels cost <em>20% less</em>.', flav:'Measure twice, knead once.',
+   req:S=>S.towerLevels >= 40, hint:'Buy 40 tower speed levels in total',
+   apply:M=>{ M.levelDisc *= 0.8; }});
+U({name:'Wholesale Bricks', ic:'🧱', tic:'💰', cost:4e11, kind:'global', cls:'tier-global',
+   desc:'Buildings cost <em>5% less</em>.', flav:'It adds up. It really does.',
+   req:S=>S.buildings >= 400, hint:'Own 400 buildings', apply:M=>{ M.buildingDisc *= 0.95; }});
+U({name:'Ceremonial Discount', ic:'🎟️', tic:'💰', cost:7e14, kind:'global', cls:'tier-global',
+   desc:'Prestiging a tower costs <em>25% less</em>.', flav:'Bring your own confetti.',
+   req:S=>S.prestiges >= 8, hint:'Prestige 8 times', apply:M=>{ M.prestigeDisc *= 0.75; }});
+
+/* --- wanderers --- */
+U({name:'Sprite Whisperer', ic:'🧚', tic:'✨', cost:2e10, kind:'global', cls:'tier-global',
+   desc:'Wheat Sprites and Yeast Blooms appear <em>30% more often</em>.',
+   flav:'Leave out a saucer of flour and they come.',
+   req:S=>S.wanderers >= 8, hint:'Catch 8 wanderers', apply:M=>{ M.goldRate *= 0.7; }});
+U({name:'Harvest Festival', ic:'🎊', tic:'✨', cost:5e16, kind:'global', cls:'tier-global',
+   desc:'Every wanderer reward and buff is <em>doubled</em>.', flav:'Bring the whole village.',
+   req:S=>S.wanderers >= 40, hint:'Catch 40 wanderers', apply:M=>{ M.goldVal *= 2; M.buffPower += 1; }});
+
+/* --- unlocked by ascending (see section 3B) --- */
+U({name:'Second Rising', ic:'🌅', tic:'🧫', cost:1e6, kind:'asc', cls:'tier-asc',
+   desc:'All bread production <em>+40%</em>.', flav:'You have done this before. It shows.',
+   req:S=>S.ascensions >= 1, hint:'Ascend once', apply:M=>{ M.global *= 1.4; }});
+U({name:'Muscle Memory', ic:'🧠', tic:'🧫', cost:5e9, kind:'asc', cls:'tier-asc',
+   desc:'Buildings cost <em>8% less</em> and clicks are <em>twice</em> as strong.',
+   flav:'Your hands know the way.',
+   req:S=>S.ascensions >= 2, hint:'Ascend twice',
+   apply:M=>{ M.buildingDisc *= 0.92; M.clickMult *= 2; }});
+U({name:'Family Recipe', ic:'📜', tic:'🧫', cost:2e13, kind:'asc', cls:'tier-asc',
+   desc:'All bread production <em>doubled</em>.', flav:'Handed down, slightly stained.',
+   req:S=>S.ascensions >= 3, hint:'Ascend three times', apply:M=>{ M.global *= 2; }});
+U({name:'Yeast Dividend', ic:'📈', tic:'🧫', cost:8e15, kind:'asc', cls:'tier-asc',
+   desc:'<em>+2%</em> production for every Starter Yeast you are holding, up to <em>+400%</em>.',
+   flav:'It compounds, in a manner of speaking.',
+   req:S=>S.ascensions >= 4, hint:'Ascend four times',
+   apply:M=>{ M.global *= 1 + Math.min(4, S.yeast * 0.02); }});
+U({name:'Eternal Starter', ic:'♾️', tic:'🧫', cost:3e18, kind:'asc', cls:'tier-asc',
+   desc:'<em>+25%</em> production for every ascension you have completed.',
+   flav:'Still bubbling after all these worlds.',
+   req:S=>S.ascensions >= 6, hint:'Ascend six times',
+   apply:M=>{ M.global *= 1 + 0.25 * S.ascensions; }});
+
 /* =================================================================
    3. ACHIEVEMENTS
    ================================================================= */
@@ -942,6 +1268,211 @@ A('Neat Freak', '🧽', 'Have <em>zero</em> upgrades available while owning 100+
 A('Collector', '🖼️', 'Unlock <em>40</em> achievements.', S=>S.achCount >= 40, 'epic');
 A('Completionist', '🧿', 'Unlock <em>every other</em> achievement.', S=>S.achCount >= ACHS.length - 1, 'epic');
 
+/* --- appended after launch: ascension, combos, wanderers, the deep end --- */
+[[1,'🌱','rare'],[2,'🌿','rare'],[5,'🌳','epic'],[10,'🌲','epic'],[25,'🌍','epic']]
+.forEach(m=>A(fI(m[0])+' Ascension'+(m[0]===1?'':'s'), m[1],
+              'Ascend <em>'+fI(m[0])+'</em> time'+(m[0]===1?'':'s')+'.', S=>S.ascensions >= m[0], m[2]));
+
+[[1,'🧫','rare'],[10,'🫙','rare'],[100,'🏺','epic'],[1000,'🍾','epic'],[1e4,'🌌','epic']]
+.forEach(m=>A(fI(m[0])+' Starter Yeast', m[1],
+              'Earn <em>'+fI(m[0])+'</em> Starter Yeast in total.', S=>S.yeastEarned >= m[0], m[2]));
+
+[[1,'🧩','rare'],[6,'🗺️','rare'],[12,'🧭','epic'],[18,'🌠','epic'],[24,'🔮','epic']]
+.forEach(m=>A(fI(m[0])+' Perk'+(m[0]===1?'':'s'), m[1],
+              'Unlock <em>'+fI(m[0])+'</em> ascension perks.', S=>S.perkCount >= m[0], m[2]));
+
+[[25,'🥁','normal'],[50,'🎵','rare'],[100,'🎸','rare'],[250,'🎻','epic']]
+.forEach(m=>A(fI(m[0])+' Click Combo', m[1],
+              'Reach a click combo of <em>'+fI(m[0])+'</em>.', S=>S.bestCombo >= m[0], m[2]));
+
+[[10,'✦','normal'],[100,'💫','rare'],[1000,'🌟','epic']]
+.forEach(m=>A(fI(m[0])+' Lucky Bites', m[1],
+              'Land <em>'+fI(m[0])+'</em> Lucky Bites.', S=>S.crits >= m[0], m[2]));
+
+[[25,'🦋','normal'],[100,'🕊️','rare'],[300,'🌠','epic']]
+.forEach(m=>A('Caught '+fI(m[0])+' Wanderers', m[1],
+              'Catch <em>'+fI(m[0])+'</em> wanderers of any kind.', S=>S.wanderers >= m[0], m[2]));
+
+[[1e75,'🫧','epic'],[1e90,'🌊','epic'],[1e120,'🕳️','epic'],[1e180,'💠','epic']]
+.forEach(m=>A('Baked '+fB(m[0]), m[1], 'Bake a lifetime total of <em>'+fB(m[0])+'</em> bread.',
+              S=>S.totalEver >= m[0], m[2]));
+
+A('Titan Wrangler', '🗿', 'Own <em>100</em> Dough Titans.', S=>S.t.titan.count >= 100, 'rare');
+A('The Last Loaf', '🫓', 'Own at least one <em>Omniloaf</em>.', S=>S.t.omniloaf.count >= 1, 'epic');
+A('Five Hundred Strong', '🏟️', 'Own <em>500</em> of a single building.',
+   S=>TOWERS.some(t=>S.t[t.id].count >= 500), 'epic');
+A('Thousand Levels', '📊', 'Buy <em>1,000</em> tower speed levels in total.',
+   S=>S.towerLevels >= 1000, 'epic');
+A('Everyone Promoted', '🎖️', 'Have <em>every</em> building at prestige I or higher.',
+   S=>TOWERS.every(t=>S.t[t.id].tier >= 1), 'epic');
+A('Autopilot', '🤖', 'Unlock the auto-clicker and both autobuyers.',
+   S=>!!(S.perks.h6 && S.perks.l4 && S.perks.l5), 'epic');
+A('Speed Run', '⏱️', 'Bake <em>1.00B</em> bread within <em>10 minutes</em> of starting a run.',
+   S=>S.runBread >= 1e9 && S.runTime <= 600000, 'epic');
+A('Second Wind', '🌬️', 'Bake <em>1.00Qa</em> bread within <em>1 hour</em> of starting a run.',
+   S=>S.runBread >= 1e15 && S.runTime <= 3600000, 'epic');
+A('Well Read', '📚', 'Own <em>120</em> upgrades at once.', S=>S.upCount >= 120, 'epic');
+A('Grand Collection', '🏅', 'Unlock <em>75</em> achievements.', S=>S.achCount >= 75, 'epic');
+
+/* =================================================================
+   3B. ASCENSION — bank the bakery, keep the wisdom
+   Ascending wipes bread, buildings and upgrades but pays out Starter
+   Yeast, spent on a permanent perk tree that survives every reset.
+   ================================================================= */
+const YEAST = '🧫';
+/* Total yeast ever earned for a lifetime bread figure: every 1000x bread is 10x yeast. */
+function yeastFor(totalEver){
+  if (!(totalEver > 1e12)) return 0;
+  return Math.floor(Math.pow(totalEver / 1e12, 1/3) * 3);
+}
+function yeastPending(){
+  return Math.max(0, Math.floor((yeastFor(S.totalEver) - S.yeastEarned) * (M ? M.yeastGain : 1)));
+}
+function breadForNextYeast(){
+  const target = Math.floor((S.yeastEarned + 1) / 3 / (M ? M.yeastGain : 1)) + 1;
+  return Math.pow(target / 3, 3) * 1e12;
+}
+
+const PERKS = [];
+function P(o){ PERKS.push(o); return o; }
+const BRANCHES = [
+  {id:'hands',   n:'Hands',   ic:'🤲', col:'#ffc463'},
+  {id:'hearth',  n:'Hearth',  ic:'🔥', col:'#ff8a5c'},
+  {id:'fortune', n:'Fortune', ic:'🍀', col:'#82e29a'},
+  {id:'legacy',  n:'Legacy',  ic:'🧬', col:'#b98bff'}
+];
+
+P({id:'h1', br:0, row:0, cost:1,   ic:'💪', n:'Strong Wrists',
+   d:'Every click is worth <em>3×</em> as much bread.', f:'Bakers do not skip arm day.',
+   apply:M=>{ M.clickMult *= 3; }});
+P({id:'h2', br:0, row:1, cost:3,   ic:'🎹', n:'Combo Memory', req:['h1'],
+   d:'Your click combo climbs <em>50 higher</em> and each step is worth <em>+1%</em> more.',
+   f:'Muscle remembers what the mind forgets.',
+   apply:M=>{ M.comboCap += 50; M.comboStep += 0.01; }});
+P({id:'h3', br:0, row:2, cost:8,   ic:'✦', n:'Lucky Palms', req:['h2'],
+   d:'Lucky Bite chance <em>+6%</em> and Lucky Bites are worth <em>×5</em> more.',
+   f:'Some hands are simply born buttered.',
+   apply:M=>{ M.critChance += 0.06; M.critMult += 5; }});
+P({id:'h4', br:0, row:3, cost:25,  ic:'🌪️', n:'Kneadstorm', req:['h3'],
+   d:'Each click also earns <em>2%</em> of your bread per second.', f:'The dough never settles.',
+   apply:M=>{ M.clickBps += 0.02; }});
+P({id:'h5', br:0, row:4, cost:80,  ic:'⚡', n:'Thunder Fingers', req:['h4'],
+   d:'Every click is worth <em>10×</em> as much bread.', f:'Thunder. Then bread.',
+   apply:M=>{ M.clickMult *= 10; }});
+P({id:'h6', br:0, row:5, cost:250, ic:'🤖', n:'Phantom Baker', req:['h5'],
+   d:'Unlocks an <em>auto-clicker</em> that clicks the loaf <em>5× per second</em> for you.',
+   f:'It never tires. It never asks for a raise.',
+   apply:M=>{ M.autoClick = 5; }});
+
+P({id:'o1', br:1, row:0, cost:1,   ic:'🌡️', n:'Warm Ovens',
+   d:'All bread production <em>+50%</em>.', f:'Preheated since the dawn of time.',
+   apply:M=>{ M.global *= 1.5; }});
+P({id:'o2', br:1, row:1, cost:3,   ic:'🧱', n:'Bulk Masonry', req:['o1'],
+   d:'Every building costs <em>10% less</em>.', f:'You know a guy.',
+   apply:M=>{ M.buildingDisc *= 0.9; }});
+P({id:'o3', br:1, row:2, cost:8,   ic:'🛠️', n:'Efficient Tooling', req:['o2'],
+   d:'Tower speed levels cost <em>35% less</em>.', f:'Sharper tools, softer crumb.',
+   apply:M=>{ M.levelDisc *= 0.65; }});
+P({id:'o4', br:1, row:3, cost:25,  ic:'🎖️', n:'Deep Tiers', req:['o3'],
+   d:'Each tower prestige tier grants <em>+30%</em> extra output from that tower.',
+   f:'Rank compounds quietly.',
+   apply:M=>{ M.tierBonus += 0.30; }});
+P({id:'o5', br:1, row:4, cost:80,  ic:'🌋', n:'Furnace Roar', req:['o4'],
+   d:'All bread production <em>×3</em>.', f:'The neighbours have stopped complaining.',
+   apply:M=>{ M.global *= 3; }});
+P({id:'o6', br:1, row:5, cost:250, ic:'🏙️', n:'Cityscale Baking', req:['o5'],
+   d:'<em>+0.5%</em> production per building you own, up to <em>+500%</em>.',
+   f:'The skyline smells incredible.',
+   apply:M=>{ M.global *= 1 + Math.min(5, buildingCount() * 0.005); }});
+
+P({id:'f1', br:2, row:0, cost:1,   ic:'🍀', n:'Four-Leaf Flour',
+   d:'Wanderers appear <em>25% more often</em>.', f:'Milled under a full moon.',
+   apply:M=>{ M.goldRate *= 0.8; }});
+P({id:'f2', br:2, row:1, cost:3,   ic:'⏳', n:'Slow Cooling', req:['f1'],
+   d:'Every buff lasts <em>60% longer</em>.', f:'Let it rest. Let it linger.',
+   apply:M=>{ M.buffDur *= 1.6; }});
+P({id:'f3', br:2, row:2, cost:8,   ic:'🌙', n:'Night Shift', req:['f2'],
+   d:'Offline baking runs at <em>90%</em> efficiency for up to <em>24 hours</em>.',
+   f:'Somebody has to watch the proving drawer.',
+   apply:M=>{ M.offline = Math.max(M.offline, 0.9); M.offlineCap = Math.max(M.offlineCap, 24); }});
+P({id:'f4', br:2, row:3, cost:25,  ic:'🥇', n:'Golden Touch', req:['f3'],
+   d:'Wanderer payouts and buffs are <em>3×</em> as strong.', f:'Careful what you grab.',
+   apply:M=>{ M.goldVal *= 3; M.buffPower += 2; }});
+P({id:'f5', br:2, row:4, cost:80,  ic:'👀', n:'Double Vision', req:['f4'],
+   d:'<em>35%</em> of wanderers bring a friend along.', f:'You are fairly sure there was only one.',
+   apply:M=>{ M.wanderTwin += 0.35; }});
+P({id:'f6', br:2, row:5, cost:250, ic:'👑', n:'Gilded Age', req:['f5'],
+   d:'While any buff is running, clicks are worth <em>25×</em> more.',
+   f:'Strike while the loaf is hot.',
+   apply:M=>{ M.buffClick *= 25; }});
+
+P({id:'l1', br:3, row:0, cost:1,   ic:'🧳', n:'Head Start',
+   d:'Begin every ascension with <em>15</em> Toasters, Bakers and Bakeries.',
+   f:'You packed light, but you packed well.',
+   apply:M=>{ M.headStart = Math.max(M.headStart, 15); }});
+P({id:'l2', br:3, row:1, cost:3,   ic:'🧫', n:'Yeast Culture', req:['l1'],
+   d:'Ascending pays <em>+40%</em> more Starter Yeast.', f:'Feed it, and it feeds you back.',
+   apply:M=>{ M.yeastGain *= 1.4; }});
+P({id:'l3', br:3, row:2, cost:8,   ic:'📓', n:'Kept Notes', req:['l2'],
+   d:'Upgrades you have bought in a previous run cost <em>60% less</em>.',
+   f:'Scribbled in the margins, mostly legible.',
+   apply:M=>{ M.reUpDisc *= 0.4; }});
+P({id:'l4', br:3, row:3, cost:25,  ic:'🏭', n:'Auto-Bakery', req:['l3'],
+   d:'Unlocks an <em>autobuyer</em> that keeps buying the best-value building it can afford.',
+   f:'Delegation is the highest form of baking.',
+   apply:M=>{ M.autoBuild = 1; }});
+P({id:'l5', br:3, row:4, cost:80,  ic:'📦', n:'Standing Order', req:['l4'],
+   d:'Unlocks an <em>autobuyer</em> for upgrades, cheapest first.',
+   f:'They just show up now. It is lovely.',
+   apply:M=>{ M.autoUp = 1; }});
+P({id:'l6', br:3, row:5, cost:250, ic:'🌾', n:'Living Starter', req:['l5'],
+   d:'Begin every ascension with <em>30 of every building</em>, and ascending pays <em>double</em>.',
+   f:'It followed you here. It will follow you anywhere.',
+   apply:M=>{ M.headStartAll = Math.max(M.headStartAll, 30); M.yeastGain *= 2; }});
+
+const PERK_BY_ID = {}; PERKS.forEach(p=>PERK_BY_ID[p.id] = p);
+function perkUnlocked(pk){ return !pk.req || pk.req.every(r=>S.perks[r]); }
+function perkOwned(pk){ return !!S.perks[pk.id]; }
+function buyPerk(pk){
+  if (perkOwned(pk) || !perkUnlocked(pk) || S.yeast < pk.cost) return false;
+  S.yeast -= pk.cost; S.perks[pk.id] = 1;
+  recompute(); dirty.stats = dirty.asc = dirty.bld = dirty.ups = true;
+  sfx('perk');
+  toast(pk.ic, pk.n, 'Perk unlocked · ' + fI(pk.cost) + ' ' + YEAST, 'epic');
+  return true;
+}
+
+function canAscend(){ return yeastPending() >= 1; }
+function doAscend(){
+  const gain = yeastPending();
+  if (gain < 1) return false;
+  S.yeast += gain; S.yeastEarned += gain; S.ascensions++;
+  S.bestRun = Math.max(S.bestRun || 0, S.totalBread);
+  S.ascBread = (S.ascBread || 0) + S.totalBread;
+
+  /* everything a new run keeps is listed here; the rest goes back to crumbs */
+  for (const k in S.ups) if (S.ups[k]) S.everUps[k] = 1;
+  S.ups = {};
+  TOWERS.forEach(t=>{ S.t[t.id] = freshTower(); });
+  S.bread = 0; S.totalBread = 0; S.spent = 0; S.clickBread = 0;
+  S.buffUntil = 0; S.buffMult = 1; S.buffName = ''; S.combo = 0; S.comboUntil = 0;
+  S.runStart = now(); openTowers = {};
+  recompute(); grantHeadStart(); recompute();
+  bldNodes && Object.keys(bldNodes).forEach(k=>{ delete bldNodes[k]; });
+  D.bldList.innerHTML = '';
+  upSeen.clear();
+  dirty.bld = dirty.ups = dirty.stats = dirty.asc = dirty.tow = true;
+  sfx('ascend');
+  return gain;
+}
+function grantHeadStart(){
+  const n1 = M.headStart, nAll = M.headStartAll;
+  TOWERS.forEach((t,i)=>{
+    const want = Math.max(nAll, i < 3 ? n1 : 0);
+    if (want > S.t[t.id].count){ S.t[t.id].count = want; S.t[t.id].seen = 1; }
+  });
+}
+
 /* =================================================================
    4. STATE
    ================================================================= */
@@ -955,8 +1486,16 @@ function freshState(){
     bread:0, totalBread:0, spent:0, clicks:0, clickBread:0, offlineBread:0, goldenBread:0,
     t, ups:{}, achs:{}, prestiges:0, goldens:0, buyAmt:1,
     started:now(), playtime:0, lastSave:now(), lastTick:now(),
-    bestBps:0, handBest:0,
-    opt:{sound:true, vol:0.55, particles:true, golden:true},
+    bestBps:0, handBest:0, bestClick:0,
+    /* --- ascension --- */
+    yeast:0, yeastEarned:0, ascensions:0, perks:{}, everUps:{}, totalEver:0, ascBread:0,
+    runStart:now(), bestRun:0,
+    /* --- clicking --- */
+    combo:0, comboUntil:0, bestCombo:0, crits:0, critBread:0,
+    /* --- wanderers --- */
+    wanderers:0, wanderBread:0,
+    opt:{sound:true, vol:0.55, sfx:true, sfxVol:0.4, particles:true, golden:true, graph:true,
+         autoClick:true, autoBuild:false, autoUp:false},
     buffUntil:0, buffMult:1, buffName:''
   };
 }
@@ -964,33 +1503,54 @@ let S = freshState();
 let openTowers = {};      // ui: which building rows are expanded
 
 /* derived, recomputed every frame */
-let M = null, BPS = 0, CLICKV = 0, AVAIL = [];
+let M = null, BPS = 0, CLICKV = 0, CLICKBASE = 0, COMBOM = 1, AVAIL = [];
 
 function recompute(){
   M = {clickMult:1, clickBps:0, global:1, achBonus:0.01, tower:{}, goldRate:1, goldVal:1,
-       prestigePerk:0, offline:0.5, offlineCap:8};
+       prestigePerk:0, offline:0.5, offlineCap:8,
+       comboCap:50, comboStep:0.02, comboWindow:1200, critChance:0.02, critMult:7, clickPerAch:0,
+       buildingDisc:1, levelDisc:1, prestigeDisc:1, reUpDisc:1, tierBonus:0,
+       buffPower:1, buffDur:1, buffClick:1, wanderTwin:0,
+       yeastGain:1, headStart:0, headStartAll:0, autoClick:0, autoBuild:0, autoUp:0};
   TOWERS.forEach(t=>M.tower[t.id] = 1);
+  for (const id in S.perks) if (S.perks[id] && PERK_BY_ID[id]) PERK_BY_ID[id].apply(M);
   for (const k in S.ups) if (S.ups[k]) UPGRADES[k] && UPGRADES[k].apply(M);
 
   const achCount = achCountFn();
   M.global *= 1 + M.achBonus * achCount;
   M.global *= 1 + M.prestigePerk * S.prestiges;
-  if (S.buffUntil > now()) M.global *= S.buffMult;
+  const buffOn = S.buffUntil > now();
+  if (buffOn) M.global *= S.buffMult;
 
   BPS = 0;
   TOWERS.forEach(t=>{
     const st = S.t[t.id];
-    const mult = st.locked * Math.pow(perLevelMult(st.tier), st.lv) * M.tower[t.id];
+    const mult = st.locked * Math.pow(perLevelMult(st.tier), st.lv) * M.tower[t.id] *
+                 (1 + M.tierBonus * st.tier);
     st._each = t.bps * mult * M.global;
     st._out  = st._each * st.count;
     BPS += st._out;
   });
-  CLICKV = (1 * M.clickMult + BPS * M.clickBps) * M.global;
+  CLICKBASE = (1 * M.clickMult * (1 + M.clickPerAch * achCount) + BPS * M.clickBps) *
+              M.global * (buffOn ? M.buffClick : 1);
+  COMBOM = comboMult();
+  CLICKV = CLICKBASE * COMBOM;
   if (BPS > S.bestBps) S.bestBps = BPS;
 }
+/* click combo: chaining clicks inside the window ramps the payout */
+function comboMult(){
+  if (S.comboUntil < now()) return 1;
+  return 1 + Math.min(S.combo, M.comboCap) * M.comboStep;
+}
+function comboFrac(){
+  if (S.comboUntil < now()) return 0;
+  return Math.max(0, Math.min(1, (S.comboUntil - now()) / M.comboWindow));
+}
+function towerLevelsFn(){ let c = 0; TOWERS.forEach(t=>c += S.t[t.id].lv); return c; }
 function achCountFn(){ let c = 0; for (const k in S.achs) if (S.achs[k]) c++; return c; }
 function buildingCount(){ let c = 0; TOWERS.forEach(t=>c += S.t[t.id].count); return c; }
 function upCountFn(){ let c = 0; for (const k in S.ups) if (S.ups[k]) c++; return c; }
+function perkCountFn(){ let c = 0; for (const k in S.perks) if (S.perks[k]) c++; return c; }
 
 /* snapshot handed to upgrade / achievement unlock checks */
 function snap(){
@@ -998,20 +1558,24 @@ function snap(){
     bread:S.bread, totalBread:S.totalBread, clicks:S.clicks, clickBread:S.clickBread,
     offlineBread:S.offlineBread, prestiges:S.prestiges, goldens:S.goldens, playtime:S.playtime,
     bps:BPS, t:S.t, buildings:buildingCount(), upCount:upCountFn(), achCount:achCountFn(),
-    avail:AVAIL.length
+    avail:AVAIL.length,
+    bestCombo:S.bestCombo, crits:S.crits, wanderers:S.wanderers, ascensions:S.ascensions,
+    yeast:S.yeast, yeastEarned:S.yeastEarned, perkCount:perkCountFn(), totalEver:S.totalEver,
+    towerLevels:towerLevelsFn(), runBread:S.totalBread, runTime:now() - (S.runStart || S.started)
   };
 }
 
 /* =================================================================
    5. ECONOMY
    ================================================================= */
-const towerCost = (t, owned) => t.base * Math.pow(1.15, owned);
+const towerBase = t => t.base * (M ? M.buildingDisc : 1);
+const towerCost = (t, owned) => towerBase(t) * Math.pow(1.15, owned);
 function bulkCost(t, owned, amount){
   // geometric series: base*1.15^owned * (1.15^amount - 1) / 0.15
-  return t.base * Math.pow(1.15, owned) * (Math.pow(1.15, amount) - 1) / 0.15;
+  return towerBase(t) * Math.pow(1.15, owned) * (Math.pow(1.15, amount) - 1) / 0.15;
 }
 function maxAffordable(t, owned, bread){
-  const c = t.base * Math.pow(1.15, owned);
+  const c = towerCost(t, owned);
   if (bread < c) return 0;
   const n = Math.floor(Math.log(bread * 0.15 / c + 1) / Math.log(1.15));
   return Math.max(0, Math.min(n, 100000));
@@ -1024,12 +1588,12 @@ function buyAmountFor(t){
 /* speed-upgrade + prestige pricing scales with the tower's locked-in power */
 function levelCost(t){
   const st = S.t[t.id];
-  return Math.min(MAXN, t.base * 55 * st.locked * tierTax(st.tier) *
+  return Math.min(MAXN, t.base * 55 * st.locked * tierTax(st.tier) * M.levelDisc *
                         Math.pow(perLevelMult(st.tier) * 1.07, st.lv));
 }
 function prestigeCost(t){
   const st = S.t[t.id];
-  return Math.min(MAXN, t.base * 55 * st.locked * tierTax(st.tier) *
+  return Math.min(MAXN, t.base * 55 * st.locked * tierTax(st.tier) * M.levelDisc * M.prestigeDisc *
                         Math.pow(perLevelMult(st.tier) * 1.07, LEVEL_CAP) * 30);
 }
 
@@ -1037,9 +1601,11 @@ function spend(n){ if (!(S.bread >= n)) return false; S.bread -= n; S.spent = Ma
 function earn(n, kind){
   if (!isFinite(n) || n <= 0) return;
   S.bread = Math.min(MAXN, S.bread + n); S.totalBread = Math.min(MAXN, S.totalBread + n);
+  S.totalEver = Math.min(MAXN, (S.totalEver || 0) + n);
   if (kind === 'click') S.clickBread += n;
   if (kind === 'offline') S.offlineBread += n;
-  if (kind === 'golden') S.goldenBread += n;
+  if (kind === 'golden'){ S.goldenBread += n; S.wanderBread = (S.wanderBread || 0) + n; }
+  if (kind === 'crit') { S.clickBread += n; S.critBread = (S.critBread || 0) + n; }
   if (!isFinite(S.bread)) S.bread = MAXN;
   if (S.bread > S.handBest) S.handBest = S.bread;
 }
@@ -1065,7 +1631,7 @@ function upgradeTower(t){
   if (!spend(c)) return false;
   st.lv++;
   recompute(); dirty.bld = dirty.stats = true;
-  if (st.lv >= LEVEL_CAP) toast('⭐','Prestige ready','<b>'+t.n+'</b> reached speed level 50','gold');
+  if (st.lv >= LEVEL_CAP){ sfx('ready'); toast('⭐','Prestige ready','<b>'+t.n+'</b> reached speed level 50','gold'); }
   return true;
 }
 function prestigeTower(t){
@@ -1076,14 +1642,17 @@ function prestigeTower(t){
   st.locked = Math.min(MAXN, st.locked * Math.pow(perLevelMult(st.tier), LEVEL_CAP) * PRESTIGE_BONUS);
   st.tier++; st.lv = 0; S.prestiges++;
   recompute(); dirty.bld = dirty.stats = dirty.ups = true;
+  sfx('prestige');
   toast('🎖️','Prestige '+roman(st.tier),
         '<b>'+t.n+'</b> levels are now <b>+'+Math.round((perLevelMult(st.tier)-1)*100)+'%</b> each','epic');
   burst(48);
   return true;
 }
+/* upgrades you have already owned in a past run can be discounted by the Kept Notes perk */
+function upCost(u){ return u.cost * (S.everUps && S.everUps[u.uid] ? M.reUpDisc : 1); }
 function buyUpgrade(u){
   if (S.ups[u.uid]) return false;
-  if (!spend(u.cost)) return false;
+  if (!spend(upCost(u))) return false;
   S.ups[u.uid] = 1;
   recompute(); dirty.stats = dirty.bld = true;
   return true;
@@ -1094,14 +1663,18 @@ function buyUpgrade(u){
    ================================================================= */
 const $ = s => document.querySelector(s);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
-const dirty = {ups:true, bld:true, ach:true, stats:true, tow:true};
+const dirty = {ups:true, bld:true, ach:true, stats:true, tow:true, asc:true, auto:true};
 
 const D = {
   app:$('#app'), bread:$('#breadAmt'), bps:$('#bpsTxt'), chipBps:$('#chipBps'), chipClick:$('#chipClick'),
   breadBtn:$('#breadBtn'), wrap:$('#breadWrap'), ring:$('#ring'), upGrid:$('#upGrid'), upCnt:$('#upCnt'),
   upEmpty:$('#upEmpty'), bldList:$('#bldList'), achGrid:$('#achGrid'), achCnt:$('#achCnt'), achFrac:$('#achFrac'),
   stats:$('#pStats'), opts:$('#pOpt'), tow:$('#pTow'), towCnt:$('#towCnt'), tip:$('#tip'), toasts:$('#toasts'),
-  golden:$('#golden'), modal:$('#modal'), modalBox:$('#modalBox'), buffChip:$('#buffChip'), buffTxt:$('#buffTxt'),
+  asc:$('#pAsc'), ascCnt:$('#ascCnt'), vault:$('#vault'), vaultBody:$('#vaultBody'), vaultYeast:$('#vaultYeast'),
+  vaultInfo:$('#vaultInfo'), vaultAscend:$('#vaultAscend'), vaultClose:$('#vaultClose'),
+  combo:$('#combo'), comboMult:$('#comboMult'), comboN:$('#comboN'), comboBar:$('#comboBar'),
+  autoRow:$('#autoRow'), autoToggles:$('#autoToggles'),
+  wanderers:$('#wanderers'), modal:$('#modal'), modalBox:$('#modalBox'), buffChip:$('#buffChip'), buffTxt:$('#buffTxt'),
   foot:$('#footHint')
 };
 
@@ -1132,6 +1705,38 @@ function playClick(rate){
 }
 addEventListener('pointerdown', initAudio, {once:false, passive:true});
 
+/* Short synthesised blips for everything that is not the loaf itself — no extra files. */
+function tone(freq, dur, type, gain, delay, sweep){
+  if (!AC) return;
+  const t0 = AC.currentTime + (delay || 0);
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'sine';
+  o.frequency.setValueAtTime(freq, t0);
+  if (sweep) o.frequency.exponentialRampToValueAtTime(Math.max(40, sweep), t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, (gain || 0.2) * S.opt.sfxVol), t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(AC.destination);
+  o.start(t0); o.stop(t0 + dur + 0.02);
+}
+const SFX = {
+  buy:      () => tone(420, 0.10, 'triangle', 0.22, 0, 640),
+  upgrade:  () => { tone(660, 0.10, 'triangle', 0.20); tone(990, 0.14, 'sine', 0.16, 0.06); },
+  ach:      () => [523,659,784,1047].forEach((f,i)=>tone(f, 0.20, 'sine', 0.17, i*0.065)),
+  prestige: () => [392,494,587,784].forEach((f,i)=>tone(f, 0.55, 'triangle', 0.16, i*0.05)),
+  ascend:   () => [262,330,392,523,659].forEach((f,i)=>tone(f, 1.5, 'sine', 0.16, i*0.11)),
+  perk:     () => { tone(880, 0.16, 'sine', 0.2); tone(1320, 0.22, 'sine', 0.14, 0.07); },
+  ready:    () => { tone(700, 0.13, 'sine', 0.18); tone(1050, 0.16, 'sine', 0.12, 0.07); },
+  wander:   () => { tone(1200, 0.18, 'sine', 0.2, 0, 1900); tone(1600, 0.2, 'sine', 0.12, 0.08); },
+  catch:    () => [784,988,1319].forEach((f,i)=>tone(f, 0.28, 'triangle', 0.18, i*0.05)),
+  combo:    n => tone(420 + Math.min(n, 60) * 14, 0.05, 'square', 0.055),
+  error:    () => tone(200, 0.12, 'sawtooth', 0.1, 0, 120)
+};
+function sfx(kind, arg){
+  if (!S.opt.sfx || !AC || AC.state === 'suspended') return;
+  try { SFX[kind] && SFX[kind](arg); } catch(e){}
+}
+
 /* --------------------------- tooltip --------------------------- */
 let tipHideT = 0;
 function tipHTML(o){
@@ -1142,8 +1747,13 @@ function tipHTML(o){
   if (o.cost != null){
     const ok = S.bread >= o.cost;
     h += '<div class="cost"><span class="lab">Cost</span><span class="' + (ok ? 'ok' : 'no') + '">' +
-         fB(o.cost) + ' bread</span></div>';
+         fB(o.cost) + ' bread' + (o.was ? ' <s style="opacity:.55;font-weight:600">' + fB(o.was) + '</s>' : '') +
+         '</span></div>';
   }
+  if (o.costTxt) h += '<div class="cost"><span class="lab">' + (o.costLab || 'Cost') + '</span><span class="' +
+                      (o.costOk ? 'ok' : 'no') + '">' + o.costTxt + '</span></div>';
+  if (o.note) h += '<div class="cost"><span class="lab">' + (o.noteLab || 'Status') + '</span><span class="when' +
+                   (o.noteLocked ? ' locked' : '') + '">' + o.note + '</span></div>';
   if (o.when) h += '<div class="cost"><span class="lab">' + (o.whenLab || 'Unlocked') + '</span><span class="when' +
                    (o.whenLocked ? ' locked' : '') + '">' + o.when + '</span></div>';
   return h;
@@ -1218,9 +1828,14 @@ function burst(count, cx, cy){
     ], {duration:520 + Math.random()*520, easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish = () => c.remove();
   }
 }
-function floatNum(text, x, y, crit){
+function floatNum(text, x, y, crit, centred){
   const wr = D.wrap.getBoundingClientRect();
-  const f = el('div', 'float-num' + (crit ? ' crit' : ''), text);
+  const f = el('div', 'float-num' + (crit ? ' crit' : '') + (centred ? ' auto' : ''), text);
+  if (centred){
+    const br = D.breadBtn.getBoundingClientRect();
+    x = br.left + br.width * (0.3 + Math.random() * 0.4);
+    y = br.top + br.height * 0.35;
+  }
   f.style.left = (x - wr.left) + 'px'; f.style.top = (y - wr.top) + 'px';
   D.wrap.appendChild(f);
   f.animate([
@@ -1234,18 +1849,36 @@ function floatNum(text, x, y, crit){
    7. CLICKING THE BREAD
    ================================================================= */
 let clickAnim = null;
-function doClick(ev){
-  const crit = Math.random() < 0.02;
-  const v = CLICKV * (crit ? 7 : 1);
-  earn(v, 'click');
+function bumpCombo(){
+  const t = now();
+  S.combo = (S.comboUntil > t ? S.combo : 0) + 1;
+  S.comboUntil = t + M.comboWindow;
+  if (S.combo > (S.bestCombo || 0)) S.bestCombo = S.combo;
+  COMBOM = comboMult();
+  CLICKV = CLICKBASE * COMBOM;
+}
+function doClick(ev, quiet){
+  bumpCombo();
+  const crit = Math.random() < M.critChance;
+  const v = CLICKV * (crit ? M.critMult : 1);
+  earn(v, crit ? 'crit' : 'click');
   S.clicks++;
+  if (crit) S.crits = (S.crits || 0) + 1;
   S.bestClick = Math.max(S.bestClick || 0, v);
+
+  if (quiet){                                   // the Phantom Baker clicks without the fanfare
+    D.breadBtn.style.filter = '';
+    if (S.clicks % 12 === 0) floatNum('+' + fB(v), 0, 0, false, true);
+    dirty.stats = true;
+    return;
+  }
 
   const r = D.breadBtn.getBoundingClientRect();
   const px = ev && ev.clientX ? ev.clientX : r.left + r.width/2;
   const py = ev && ev.clientY ? ev.clientY : r.top + r.height/2;
 
   playClick(crit ? 0.72 : undefined);
+  if (S.combo > 1 && S.combo % 5 === 0) sfx('combo', S.combo);
   floatNum((crit ? '✦ ' : '+') + fB(v), px, py - 10, crit);
   burst(crit ? 26 : 7, px, py);
 
@@ -1262,8 +1895,17 @@ function doClick(ev){
 
   D.bread.classList.add('bump');
   clearTimeout(doClick._bt); doClick._bt = setTimeout(() => D.bread.classList.remove('bump'), 110);
-  if (crit) toast('✦','Lucky Bite!','A ×7 click for ' + fB(v) + ' bread','gold');
+  if (crit) toast('✦','Lucky Bite!','A ×' + fI(M.critMult) + ' click for ' + fB(v) + ' bread','gold');
   dirty.stats = true;
+}
+/* auto-clicker (Phantom Baker perk) */
+let autoClickAcc = 0;
+function tickAutoClick(dt){
+  if (!M.autoClick || !S.opt.autoClick) return;
+  autoClickAcc += dt * M.autoClick;
+  let n = Math.min(Math.floor(autoClickAcc), 40);
+  autoClickAcc -= n;
+  while (n-- > 0) doClick(null, true);
 }
 D.breadBtn.addEventListener('pointerdown', e => { if (e.button === 0 || e.pointerType !== 'mouse') doClick(e); });
 D.breadBtn.addEventListener('contextmenu', e => e.preventDefault());
@@ -1291,14 +1933,15 @@ function renderUpgrades(){
     bindTip(n, () => ({
       ic:u.ic, name:u.name, kind:(u.tic ? u.tic + ' ' : '') + ({click:'Click upgrade',
       tower:'Building upgrade', global:'Global upgrade', ach:'Achievement upgrade'}[u.kind] || 'Upgrade'),
-      desc:u.desc, flav:u.flav, cost:u.cost
+      desc:u.desc, flav:u.flav, cost:upCost(u), was:upCost(u) < u.cost ? u.cost : null
     }));
     n.addEventListener('click', () => {
-      if (S.bread < u.cost){ n.animate([{transform:'translateX(0)'},{transform:'translateX(-5px)'},
+      if (S.bread < upCost(u)){
+        sfx('error'); n.animate([{transform:'translateX(0)'},{transform:'translateX(-5px)'},
         {transform:'translateX(5px)'},{transform:'translateX(0)'}], {duration:220}); return; }
       buyUpgrade(u);
       n.classList.add('buying'); hideTip();
-      playClick(1.35);
+      playClick(1.35); sfx('upgrade');
       toast(u.ic, u.name, 'Upgrade purchased', 'gold');
       setTimeout(() => { dirty.ups = true; }, 300);
     });
@@ -1307,13 +1950,14 @@ function renderUpgrades(){
   refreshUpgradeAfford();
 }
 function refreshUpgradeAfford(){
-  for (const n of D.upGrid.children) n.classList.toggle('locked', S.bread < n._up.cost);
+  for (const n of D.upGrid.children) n.classList.toggle('locked', S.bread < upCost(n._up));
 }
 
 /* --------------------------- buildings ------------------------- */
 const bldNodes = {};
 function buildingUnlocked(t){
   const st = S.t[t.id];
+  if (t.idx === 0) return (st.seen = 1);          // the Toaster is always on the shelf
   if (st.count > 0 || st.seen) return (st.seen = 1);
   if (S.totalBread >= t.base * 0.35){ st.seen = 1; return 1; }
   return 0;
@@ -1357,7 +2001,7 @@ function makeBuilding(t){
     }
     const got = buyTower(t);
     if (got){
-      playClick(1.15);
+      playClick(1.15); sfx('buy');
       refs.count.classList.add('tick');
       setTimeout(() => refs.count.classList.remove('tick'), 220);
       burst(6);
@@ -1366,7 +2010,7 @@ function makeBuilding(t){
         {transform:'translateX(4px)'},{transform:'translateX(0)'}], {duration:200});
     }
   });
-  refs.up.addEventListener('click', () => { if (upgradeTower(t)) { playClick(1.5); burst(8); } });
+  refs.up.addEventListener('click', () => { if (upgradeTower(t)) { playClick(1.5); sfx('buy'); burst(8); } });
   refs.pr.addEventListener('click', () => {
     if (S.t[t.id].lv < LEVEL_CAP) return;
     if (prestigeTower(t)) playClick(0.65);
@@ -1462,12 +2106,13 @@ function checkAchievements(){
     let ok = false; try { ok = a.check(sn); } catch(e){ ok = false; }
     if (ok){
       S.achs[a.id] = now(); got = true;
+      sfx('ach');
       toast(a.ic, a.name, 'Achievement unlocked · +1% production', a.rar === 'epic' ? 'epic' : 'gold');
       const n = achNodes[a.id];
       if (n){ n.classList.add('new'); setTimeout(() => n.classList.remove('new'), 750); }
     }
   }
-  if (got){ recompute(); dirty.ach = dirty.stats = dirty.ups = true; }
+  if (got){ recompute(); dirty.ach = dirty.stats = dirty.ups = dirty.asc = true; }
 }
 
 /* ----------------------------- stats --------------------------- */
@@ -1477,48 +2122,77 @@ function renderStats(){
   const b = buildingCount(), up = upCountFn(), ac = achCountFn();
   const clickShare = S.totalBread > 0 ? (S.clickBread / S.totalBread * 100) : 0;
   const html =
-    sec('Bread', 
+    (S.opt.graph ? sparkSVG() : '') +
+    sec('Bread',
       row('Bread in hand', fB(S.bread), 'gold') +
       row('Bread per second', fB(BPS) + '/s', 'gold') +
       row('Bread per click', fB(CLICKV)) +
       row('Best bread per second', fB(S.bestBps) + '/s') +
       row('Most bread held at once', fB(S.handBest)) +
-      row('Baked all time', fB(S.totalBread)) +
-      row('Spent all time', fB(S.spent))
+      row('Baked this run', fB(S.totalBread)) +
+      row('Baked all runs', fB(S.totalEver || 0)) +
+      row('Spent this run', fB(S.spent))
     ) +
     sec('Clicking',
       row('Bread clicks', fI(S.clicks)) +
       row('Bread from clicks', fB(S.clickBread)) +
       row('Share from clicking', clickShare.toFixed(2) + '%') +
       row('Best single click', fB(S.bestClick || 0)) +
+      row('Current combo', fI(S.combo && S.comboUntil > now() ? S.combo : 0) + '  ·  ×' + fB(COMBOM)) +
+      row('Best combo', fI(S.bestCombo || 0), 'gold') +
+      row('Lucky Bites', fI(S.crits || 0) + '  ·  ' + (M.critChance * 100).toFixed(1) + '% at ×' + fI(M.critMult)) +
+      row('Bread from Lucky Bites', fB(S.critBread || 0)) +
       row('Click bonus from production', (M.clickBps * 100).toFixed(2) + '% of BPS')
     ) +
     sec('Bakery',
       row('Buildings owned', fI(b)) +
       row('Building types unlocked', fI(TOWERS.filter(t => S.t[t.id].seen).length) + ' / ' + fI(TOWERS.length)) +
-      row('Tower speed levels', fI(TOWERS.reduce((a,t) => a + S.t[t.id].lv, 0))) +
+      row('Tower speed levels', fI(towerLevelsFn())) +
       row('Tower prestiges', fI(S.prestiges), 'vio') +
-      row('Highest prestige tier', roman(Math.max.apply(null, TOWERS.map(t => S.t[t.id].tier))), 'vio')
+      row('Highest prestige tier', roman(Math.max.apply(null, TOWERS.map(t => S.t[t.id].tier))), 'vio') +
+      row('Building discount', '−' + Math.round((1 - M.buildingDisc) * 100) + '%', 'grn') +
+      row('Level discount', '−' + Math.round((1 - M.levelDisc) * 100) + '%', 'grn')
     ) +
     sec('Progress',
       row('Upgrades bought', fI(up) + ' / ' + fI(UPGRADES.length)) +
       row('Upgrades available', fI(AVAIL.length)) +
+      row('Upgrades seen ever', fI(Object.keys(S.everUps || {}).length)) +
       row('Achievements', fI(ac) + ' / ' + fI(ACHS.length), 'grn') +
       row('Achievement bonus', '+' + (M.achBonus * ac * 100).toFixed(0) + '%', 'grn') +
       row('Prestige bonus', '+' + (M.prestigePerk * S.prestiges * 100).toFixed(0) + '%', 'vio') +
       row('Global multiplier', '×' + fB(M.global), 'gold')
     ) +
-    sec('Golden Loaves',
-      row('Golden Loaves clicked', fI(S.goldens)) +
-      row('Bread from Golden Loaves', fB(S.goldenBread)) +
+    sec('Ascension',
+      row('Ascensions', fI(S.ascensions), 'vio') +
+      row('Starter Yeast held', fI(S.yeast), 'vio') +
+      row('Starter Yeast earned', fI(S.yeastEarned), 'vio') +
+      row('Yeast waiting to bank', fI(yeastPending()), yeastPending() ? 'vio' : '') +
+      row('Perks unlocked', fI(perkCountFn()) + ' / ' + fI(PERKS.length), 'vio') +
+      row('Best run', fB(S.bestRun || 0)) +
+      row('This run so far', fmtTime(now() - (S.runStart || S.started)))
+    ) +
+    sec('Wanderers',
+      row('Wanderers caught', fI(S.wanderers || 0)) +
+      row('Golden Loaves', fI(S.goldens)) +
+      row('Bread from wanderers', fB(S.wanderBread || S.goldenBread || 0)) +
+      row('Spawn rate', '×' + (1 / M.goldRate).toFixed(2) + ' more often', 'grn') +
       row('Active buff', S.buffUntil > now() ? S.buffName + ' (' + Math.ceil((S.buffUntil - now())/1000) + 's)' : 'none',
           S.buffUntil > now() ? 'gold' : '')
+    ) +
+    sec('Automation',
+      row('Auto-clicker', M.autoClick ? fI(M.autoClick) + '/s ' + (S.opt.autoClick ? '· on' : '· off') : 'locked',
+          M.autoClick && S.opt.autoClick ? 'grn' : '') +
+      row('Building autobuyer', M.autoBuild ? (S.opt.autoBuild ? 'on' : 'off') : 'locked',
+          M.autoBuild && S.opt.autoBuild ? 'grn' : '') +
+      row('Upgrade autobuyer', M.autoUp ? (S.opt.autoUp ? 'on' : 'off') : 'locked',
+          M.autoUp && S.opt.autoUp ? 'grn' : '')
     ) +
     sec('Session',
       row('Total play time', fmtTime(S.playtime)) +
       row('This session', fmtTime(now() - sessionStart)) +
       row('Bakery founded', fmtDate(S.started)) +
       row('Bread earned while away', fB(S.offlineBread)) +
+      row('Offline rate', Math.round(M.offline * 100) + '% for up to ' + fI(M.offlineCap) + 'h') +
       row('Last save', fmtDate(S.lastSave))
     );
   D.stats.innerHTML = html;
@@ -1549,11 +2223,16 @@ function renderTowersTab(){
 /* --------------------------- options --------------------------- */
 function renderOptions(){
   D.opts.innerHTML =
-    '<div class="stat-sec"><h3>Settings</h3>' +
-      '<div class="opt"><div class="k">Click sound<s>Plays on every bread click</s></div><div class="sw' + (S.opt.sound?' on':'') + '" data-opt="sound"></div></div>' +
-      '<div class="opt"><div class="k">Volume<s id="volLab">' + Math.round(S.opt.vol*100) + '%</s></div><input type="range" id="vol" min="0" max="100" value="' + Math.round(S.opt.vol*100) + '"></div>' +
+    '<div class="stat-sec"><h3>Sound</h3>' +
+      '<div class="opt"><div class="k">Click sound<s>The sampled bite on every bread click</s></div><div class="sw' + (S.opt.sound?' on':'') + '" data-opt="sound"></div></div>' +
+      '<div class="opt"><div class="k">Click volume<s id="volLab">' + Math.round(S.opt.vol*100) + '%</s></div><input type="range" id="vol" min="0" max="100" value="' + Math.round(S.opt.vol*100) + '"></div>' +
+      '<div class="opt"><div class="k">Interface sounds<s>Buys, upgrades, achievements, ascension</s></div><div class="sw' + (S.opt.sfx?' on':'') + '" data-opt="sfx"></div></div>' +
+      '<div class="opt"><div class="k">Interface volume<s id="sfxLab">' + Math.round(S.opt.sfxVol*100) + '%</s></div><input type="range" id="sfxVol" min="0" max="100" value="' + Math.round(S.opt.sfxVol*100) + '"></div>' +
+    '</div>' +
+    '<div class="stat-sec"><h3>Display</h3>' +
       '<div class="opt"><div class="k">Particles<s>Crumbs and floating numbers</s></div><div class="sw' + (S.opt.particles?' on':'') + '" data-opt="particles"></div></div>' +
-      '<div class="opt"><div class="k">Golden Loaves<s>Rare bonus loaves drift across the screen</s></div><div class="sw' + (S.opt.golden?' on':'') + '" data-opt="golden"></div></div>' +
+      '<div class="opt"><div class="k">Production graph<s>Live bread-per-second chart in Stats</s></div><div class="sw' + (S.opt.graph?' on':'') + '" data-opt="graph"></div></div>' +
+      '<div class="opt"><div class="k">Wanderers<s>Golden Loaves, Wheat Sprites and Yeast Blooms</s></div><div class="sw' + (S.opt.golden?' on':'') + '" data-opt="golden"></div></div>' +
     '</div>' +
     '<div class="stat-sec"><h3>Save</h3>' +
       '<button class="wbtn" id="btnSave">💾 Save now</button>' +
@@ -1561,15 +2240,29 @@ function renderOptions(){
       '<button class="wbtn" id="btnImport">📥 Import save</button>' +
       '<button class="wbtn danger" id="btnWipe">🔥 Delete everything</button>' +
     '</div>' +
+    '<div class="stat-sec"><h3>Shortcuts</h3>' +
+      kbd('Space / Enter', 'Bake one loaf') +
+      kbd('1 · 2 · 3 · 4', 'Buy ×1, ×10, ×100, MAX') +
+      kbd('Q / E', 'Collapse the left / right panel') +
+      kbd('V', 'Open the Starter Vault') +
+      kbd('S', 'Save now') +
+      kbd('Esc', 'Close anything that is open') +
+    '</div>' +
     '<div class="stat-sec"><h3>About</h3><p class="hint" style="line-height:1.6;margin:0">' +
       'BREAD CLICKER — one HTML file, no server, no tracking. Your bakery lives in this browser\'s local storage. ' +
-      'Buildings get faster with speed levels; at level ' + LEVEL_CAP + ' you can prestige them so every future level hits far harder.' +
+      'Buildings get faster with speed levels; at level ' + LEVEL_CAP + ' you can prestige them so every future level hits far harder. ' +
+      'Once you have baked a trillion loaves you can ascend and spend Starter Yeast on permanent perks.' +
     '</p></div>';
 
   D.opts.querySelectorAll('.sw').forEach(sw => sw.addEventListener('click', () => {
     const k = sw.dataset.opt; S.opt[k] = !S.opt[k]; sw.classList.toggle('on', S.opt[k]);
     if (k === 'sound' && S.opt.sound) playClick();
-    if (k === 'golden') scheduleGolden();
+    if (k === 'sfx' && S.opt.sfx) sfx('ready');
+    if (k === 'graph') dirty.stats = true;
+    if (k === 'golden'){
+      if (S.opt.golden) scheduleWanderer(8000);
+      else { clearTimeout(wanderT); D.wanderers.innerHTML = ''; wanderLive = 0; }
+    }
   }));
   const vol = D.opts.querySelector('#vol');
   vol.addEventListener('input', () => {
@@ -1577,58 +2270,402 @@ function renderOptions(){
     D.opts.querySelector('#volLab').textContent = vol.value + '%';
   });
   vol.addEventListener('change', () => playClick());
-  D.opts.querySelector('#btnSave').addEventListener('click', () => { save(); toast('💾','Saved','Your bakery is safe'); });
+  const sv = D.opts.querySelector('#sfxVol');
+  sv.addEventListener('input', () => {
+    S.opt.sfxVol = sv.value / 100;
+    D.opts.querySelector('#sfxLab').textContent = sv.value + '%';
+  });
+  sv.addEventListener('change', () => sfx('upgrade'));
+  D.opts.querySelector('#btnSave').addEventListener('click', () => { save(); sfx('ready'); toast('💾','Saved','Your bakery is safe'); });
   D.opts.querySelector('#btnExport').addEventListener('click', exportSave);
   D.opts.querySelector('#btnImport').addEventListener('click', importSave);
   D.opts.querySelector('#btnWipe').addEventListener('click', wipeSave);
 }
+function kbd(keys, what){
+  return '<div class="srow"><span class="k">' + what + '</span><span class="v"><kbd>' +
+         keys.split(' ').join('</kbd> <kbd>').replace(/<kbd>(\/|·)<\/kbd>/g, '$1') + '</kbd></span></div>';
+}
 
 /* =================================================================
-   9. GOLDEN LOAF
+   9. WANDERERS — rare visitors that drift across the bakery
    ================================================================= */
-let goldenT = 0;
-function scheduleGolden(){
-  clearTimeout(goldenT);
-  if (!S.opt.golden) { D.golden.classList.remove('show'); return; }
-  const base = (75 + Math.random() * 165) * 1000 * (M ? M.goldRate : 1);
-  goldenT = setTimeout(spawnGolden, base);
+const WANDER_SVG = {
+  golden:'<svg viewBox="0 0 100 100"><defs><radialGradient id="wgG" cx="35%" cy="28%">' +
+    '<stop offset="0" stop-color="#fff6c9"/><stop offset="55%" stop-color="#ffd257"/>' +
+    '<stop offset="100%" stop-color="#e08a1e"/></radialGradient></defs>' +
+    '<path d="M12 62C12 36 28 22 50 22s38 14 38 40c0 9-7 15-17 15H29c-10 0-17-6-17-15Z" ' +
+    'fill="url(#wgG)" stroke="#b46a12" stroke-width="2.5"/>' +
+    '<path d="M30 40c4-6 9-9 14-9M46 38c5-6 10-8 15-8" stroke="#fff3c4" stroke-width="4" ' +
+    'stroke-linecap="round" fill="none" opacity=".85"/></svg>',
+  sprite:'<svg viewBox="0 0 100 100"><defs><radialGradient id="wsG" cx="45%" cy="35%">' +
+    '<stop offset="0" stop-color="#fffbe8"/><stop offset="60%" stop-color="#ffe083"/>' +
+    '<stop offset="100%" stop-color="#d79a2b"/></radialGradient></defs>' +
+    '<circle cx="50" cy="50" r="26" fill="url(#wsG)" opacity=".92"/>' +
+    '<path d="M50 74V34" stroke="#8a5a16" stroke-width="4" stroke-linecap="round"/>' +
+    '<path d="M50 40c-9-2-13-9-13-16 8 0 13 6 13 13Zm0 0c9-2 13-9 13-16-8 0-13 6-13 13Z" fill="#c98a1e"/>' +
+    '<path d="M50 54c-9-2-13-9-13-16 8 0 13 6 13 13Zm0 0c9-2 13-9 13-16-8 0-13 6-13 13Z" fill="#e0a83a"/>' +
+    '<path d="M50 68c-9-2-13-9-13-16 8 0 13 6 13 13Zm0 0c9-2 13-9 13-16-8 0-13 6-13 13Z" fill="#f4c264"/></svg>',
+  bloom:'<svg viewBox="0 0 100 100"><defs><radialGradient id="wbG" cx="38%" cy="32%">' +
+    '<stop offset="0" stop-color="#f4ffff"/><stop offset="55%" stop-color="#a8f0d8"/>' +
+    '<stop offset="100%" stop-color="#3fae8b"/></radialGradient></defs>' +
+    '<circle cx="42" cy="56" r="26" fill="url(#wbG)" opacity=".92"/>' +
+    '<circle cx="68" cy="38" r="15" fill="url(#wbG)" opacity=".85"/>' +
+    '<circle cx="70" cy="66" r="10" fill="url(#wbG)" opacity=".75"/>' +
+    '<circle cx="34" cy="46" r="6" fill="#fff" opacity=".7"/></svg>'
+};
+const WANDER_KINDS = ['golden','golden','golden','sprite','bloom'];   // golden is the common one
+let wanderT = 0, wanderLive = 0;
+
+function scheduleWanderer(delay){
+  clearTimeout(wanderT);
+  if (!S.opt.golden) return;
+  const base = delay != null ? delay
+             : (70 + Math.random() * 170) * 1000 * (M ? M.goldRate : 1);
+  wanderT = setTimeout(() => spawnWanderer(), Math.max(3000, base));
 }
-function spawnGolden(){
-  if (!S.opt.golden){ scheduleGolden(); return; }
-  const pad = 60;
-  D.golden.style.left = (pad + Math.random() * (innerWidth - pad*2 - 96)) + 'px';
-  D.golden.style.top  = (pad + Math.random() * (innerHeight - pad*2 - 96)) + 'px';
-  D.golden.classList.add('show');
-  const life = D.golden.animate([{opacity:0, transform:'scale(.3)'},{opacity:1, transform:'scale(1)', offset:.08},
-    {opacity:1, transform:'scale(1)', offset:.85},{opacity:0, transform:'scale(.4)'}],
-    {duration:13000, easing:'linear'});
-  life.onfinish = () => { D.golden.classList.remove('show'); scheduleGolden(); };
-  D.golden._life = life;
+function spawnWanderer(kind, twin){
+  if (!S.opt.golden){ scheduleWanderer(); return; }
+  if (wanderLive > 3){ scheduleWanderer(); return; }
+  kind = kind || WANDER_KINDS[(Math.random() * WANDER_KINDS.length) | 0];
+
+  const size = innerWidth < 700 ? 76 : 96;
+  const n = el('div', 'wanderer ' + kind, WANDER_SVG[kind]);
+  n.style.width = n.style.height = size + 'px';
+  n.title = {golden:'Golden Loaf', sprite:'Wheat Sprite', bloom:'Yeast Bloom'}[kind];
+  D.wanderers.appendChild(n);
+  wanderLive++;
+
+  /* drift in an arc from one edge to another so it has to be chased */
+  const vw = innerWidth, vh = innerHeight, pad = size;
+  const fromLeft = Math.random() < 0.5;
+  const x0 = fromLeft ? -size : vw, x1 = fromLeft ? vw : -size;
+  const y0 = pad + Math.random() * (vh - pad * 2);
+  const y1 = pad + Math.random() * (vh - pad * 2);
+  const ym = pad + Math.random() * (vh - pad * 2);
+  const life = 12000 + Math.random() * 5000;
+  n.style.left = '0px'; n.style.top = '0px';
+  const anim = n.animate([
+    {transform:'translate(' + x0 + 'px,' + y0 + 'px) scale(.3)', opacity:0},
+    {transform:'translate(' + (x0 + (x1-x0)*0.12) + 'px,' + (y0 + (ym-y0)*0.2) + 'px) scale(1)', opacity:1, offset:.12},
+    {transform:'translate(' + (x0 + (x1-x0)*0.5) + 'px,' + ym + 'px) scale(1)', opacity:1, offset:.5},
+    {transform:'translate(' + (x0 + (x1-x0)*0.88) + 'px,' + (y1 - (y1-ym)*0.2) + 'px) scale(1)', opacity:1, offset:.88},
+    {transform:'translate(' + x1 + 'px,' + y1 + 'px) scale(.3)', opacity:0}
+  ], {duration:life, easing:'linear'});
+  n._anim = anim;
+  anim.onfinish = () => { n.remove(); wanderLive--; if (!twin) scheduleWanderer(); };
+
+  n.addEventListener('click', e => catchWanderer(kind, n, e, twin));
+  sfx('wander');
+  if (!twin && Math.random() < M.wanderTwin) setTimeout(() => spawnWanderer(null, true), 900);
 }
-D.golden.addEventListener('click', e => {
-  if (!D.golden.classList.contains('show')) return;
-  D.golden.classList.remove('show');
-  if (D.golden._life) D.golden._life.cancel();
-  S.goldens++;
-  playClick(0.55);
+
+function catchWanderer(kind, node, e, twin){
+  node._anim && node._anim.cancel();
+  node.remove(); wanderLive--;
+  S.wanderers = (S.wanderers || 0) + 1;
+  if (kind === 'golden') S.goldens++;
+  playClick(0.55); sfx('catch');
   burst(60, e.clientX, e.clientY);
-  const roll = Math.random();
-  if (roll < 0.45){
-    const gain = Math.max(13, Math.min(S.bread * 0.15, BPS * 240)) * M.goldVal;
+  const dur = d => Math.round(d * M.buffDur);
+
+  if (kind === 'sprite'){
+    const gain = Math.max(25, BPS * 90) * M.goldVal;
     earn(gain, 'golden');
     floatNum('+' + fB(gain), e.clientX, e.clientY, true);
-    toast('🌟','Lucky Loaf!','+' + fB(gain) + ' bread','gold');
-  } else if (roll < 0.85){
-    S.buffMult = 7 * (M.goldVal > 1 ? 1.2 : 1); S.buffName = 'Frenzy ×' + fB(S.buffMult);
-    S.buffUntil = now() + 30000;
-    toast('⚡','Frenzy!','Production ×' + fB(S.buffMult) + ' for 30 seconds','epic');
+    const owned = TOWERS.filter(t => S.t[t.id].count > 0 && S.t[t.id].lv < LEVEL_CAP);
+    if (owned.length){
+      const t = owned[(Math.random() * owned.length) | 0];
+      S.t[t.id].lv++;
+      toast('🌾','Wheat Sprite','+' + fB(gain) + ' bread and a free <b>' + t.n + '</b> speed level','gold');
+    } else {
+      toast('🌾','Wheat Sprite','+' + fB(gain) + ' bread','gold');
+    }
+  } else if (kind === 'bloom'){
+    applyBuff('Yeast Bloom ×' + fB(3 * M.buffPower), 3 * M.buffPower, dur(60000), '🫧');
   } else {
-    S.buffMult = 777; S.buffName = 'Click Storm ×777'; S.buffUntil = now() + 8000;
-    toast('🌪️','Click Storm!','Everything ×777 for 8 seconds','epic');
+    const roll = Math.random();
+    if (roll < 0.42){
+      const gain = Math.max(13, Math.min(S.bread * 0.15, BPS * 260)) * M.goldVal;
+      earn(gain, 'golden');
+      floatNum('+' + fB(gain), e.clientX, e.clientY, true);
+      toast('🌟','Lucky Loaf!','+' + fB(gain) + ' bread','gold');
+    } else if (roll < 0.85){
+      applyBuff('Frenzy ×' + fB(7 * M.buffPower), 7 * M.buffPower, dur(30000), '⚡');
+    } else {
+      applyBuff('Click Storm ×777', 777, dur(8000), '🌪️');
+    }
   }
   recompute(); dirty.stats = dirty.ups = true;
-  scheduleGolden();
-});
+  if (!twin) scheduleWanderer();
+}
+function applyBuff(name, mult, ms, ic){
+  S.buffMult = mult; S.buffName = name; S.buffUntil = now() + ms;
+  toast(ic, name.replace(/ ×.*/, '') + '!', 'Everything ×' + fB(mult) + ' for ' + Math.round(ms/1000) + 's', 'epic');
+  recompute();
+}
+
+/* =================================================================
+   9B. ASCENSION UI — the pane, the vault, the ceremony
+   ================================================================= */
+let ascBuilt = false, ascRefs = null;
+function buildAscension(){
+  D.asc.innerHTML =
+    '<div class="asc-hero">' +
+      '<span class="lab">Starter Yeast</span>' +
+      '<div class="big mono" id="ascYeast">0</div>' +
+      '<div class="sub" id="ascSub"></div>' +
+      '<div class="asc-bar"><i id="ascBar"></i></div>' +
+      '<div class="asc-actions">' +
+        '<button class="wbtn vio" id="ascOpen">🧫 Starter Vault</button>' +
+        '<button class="wbtn vio" id="ascGo" disabled>🌱 Ascend</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="stat-sec"><h3>Legacy</h3><div id="ascRows"></div></div>' +
+    '<div class="stat-sec"><h3>Perks</h3><div class="perk-mini" id="perkMini"></div>' +
+      '<p class="hint" style="margin:10px 2px 4px;line-height:1.5">Ascending resets bread, buildings and ' +
+      'upgrades. Achievements, perks and yeast are yours forever.</p></div>';
+
+  const mini = $('#perkMini'), minis = {};
+  PERKS.forEach(pk => {
+    const n = el('div', 'pm', '❔');
+    bindTip(n, () => perkTip(pk));
+    mini.appendChild(n); minis[pk.id] = n;
+  });
+  $('#ascOpen').addEventListener('click', openVault);
+  $('#ascGo').addEventListener('click', askAscend);
+  ascRefs = {yeast:$('#ascYeast'), sub:$('#ascSub'), bar:$('#ascBar'), go:$('#ascGo'), rows:$('#ascRows'), minis};
+  ascBuilt = true;
+}
+function renderAscension(){
+  if (!ascBuilt) buildAscension();
+  const r = ascRefs;
+  const pending = yeastPending(), ever = S.totalEver || 0;
+  const nextAt = breadForNextYeast();
+  const prevAt = Math.pow(Math.max(0, S.yeastEarned) / 3 / (M.yeastGain || 1), 3) * 1e12;
+  const frac = ever <= prevAt ? 0 : Math.max(0, Math.min(1, (ever - prevAt) / Math.max(1, nextAt - prevAt)));
+
+  r.yeast.textContent = fI(S.yeast);
+  r.sub.innerHTML = pending >= 1
+    ? 'Ascending now banks <b>' + fI(pending) + '</b> more.'
+    : 'Bake <b>' + fB(Math.max(0, nextAt - ever)) + '</b> more bread for your next yeast.';
+  r.bar.style.width = (frac * 100).toFixed(1) + '%';
+  r.go.disabled = pending < 1;
+  r.go.textContent = '🌱 Ascend' + (pending >= 1 ? ' (+' + fI(pending) + ')' : '');
+  r.rows.innerHTML =
+    row('Ascensions', fI(S.ascensions), 'vio') +
+    row('Perks unlocked', fI(perkCountFn()) + ' / ' + fI(PERKS.length), 'vio') +
+    row('Starter Yeast held', fI(S.yeast), 'vio') +
+    row('Starter Yeast earned', fI(S.yeastEarned), 'vio') +
+    row('Bread baked, all runs', fB(ever)) +
+    row('This run', fB(S.totalBread)) +
+    row('Best run', fB(S.bestRun || 0)) +
+    row('Run length', fmtTime(now() - (S.runStart || S.started)));
+  PERKS.forEach(pk => {
+    const n = r.minis[pk.id], own = perkOwned(pk);
+    n.classList.toggle('got', own);
+    n.textContent = own ? pk.ic : '❔';
+  });
+  D.ascCnt.textContent = fI(perkCountFn());
+}
+
+function perkTip(pk){
+  const br = BRANCHES[pk.br], own = perkOwned(pk), unl = perkUnlocked(pk);
+  return {
+    ic: own || unl ? pk.ic : '🔒', name: own || unl ? pk.n : '???',
+    kind: br.ic + ' ' + br.n + ' · Tier ' + roman(pk.row + 1),
+    desc: unl || own ? pk.d : 'Unlock <em>' + (pk.req || []).map(r => PERK_BY_ID[r].n).join(', ') + '</em> first.',
+    flav: own || unl ? pk.f : null,
+    costTxt: own ? 'Owned' : fI(pk.cost) + ' ' + YEAST,
+    costLab: own ? 'Status' : 'Cost',
+    costOk: own || S.yeast >= pk.cost
+  };
+}
+
+/* ------------------------------ vault -------------------------- */
+let vaultBuilt = false;
+const perkNodes = {};
+function buildVault(){
+  D.vaultBody.innerHTML = '';
+  const tree = el('div', 'tree');
+  BRANCHES.forEach((br, bi) => {
+    const col = el('div', 'branch');
+    col.appendChild(el('div', 'branch-head', '<span class="bi">' + br.ic + '</span>' + br.n));
+    PERKS.filter(p => p.br === bi).sort((a, b) => a.row - b.row).forEach((pk, i) => {
+      if (i > 0) { const lk = el('div', 'perk-link'); lk.dataset.perk = pk.id; col.appendChild(lk); }
+      const n = el('div', 'perk');
+      n.innerHTML = '<div class="pic"></div><div class="pn"></div><div class="pc"></div>';
+      n.addEventListener('click', () => {
+        if (perkOwned(pk)) return;
+        if (!perkUnlocked(pk) || S.yeast < pk.cost){
+          sfx('error');
+          n.animate([{transform:'translateX(0)'},{transform:'translateX(-5px)'},
+                     {transform:'translateX(5px)'},{transform:'translateX(0)'}], {duration:220});
+          return;
+        }
+        buyPerk(pk);
+        n.classList.add('just'); setTimeout(() => n.classList.remove('just'), 700);
+        updateVault(); renderAscension(); hideTip();
+      });
+      bindTip(n, () => perkTip(pk));
+      perkNodes[pk.id] = n;
+      col.appendChild(n);
+    });
+    tree.appendChild(col);
+  });
+  D.vaultBody.appendChild(tree);
+  vaultBuilt = true;
+}
+function updateVault(){
+  if (!vaultBuilt) return;
+  D.vaultYeast.textContent = fI(S.yeast);
+  PERKS.forEach(pk => {
+    const n = perkNodes[pk.id]; if (!n) return;
+    const own = perkOwned(pk), unl = perkUnlocked(pk), afford = S.yeast >= pk.cost;
+    n.className = 'perk' + (own ? ' got' : unl ? (afford ? ' buyable' : ' poor') : ' locked');
+    n.querySelector('.pic').textContent = own || unl ? pk.ic : '🔒';
+    n.querySelector('.pn').textContent = own || unl ? pk.n : '???';
+    n.querySelector('.pc').innerHTML = own ? 'Unlocked' : fI(pk.cost) + ' ' + YEAST;
+  });
+  D.vaultBody.querySelectorAll('.perk-link').forEach(lk => {
+    lk.classList.toggle('lit', !!S.perks[lk.dataset.perk]);
+  });
+  const pending = yeastPending();
+  D.vaultInfo.innerHTML = pending >= 1
+    ? 'Ascending now banks <b>' + fI(pending) + ' ' + YEAST + '</b> and restarts the bakery. ' +
+      '<span class="warn">Bread, buildings and upgrades reset.</span>'
+    : 'Bake <b>' + fB(Math.max(0, breadForNextYeast() - (S.totalEver || 0))) + '</b> more bread to earn your next Starter Yeast.';
+  D.vaultAscend.disabled = pending < 1;
+  D.vaultAscend.textContent = pending >= 1 ? 'Ascend  ·  +' + fI(pending) + ' ' + YEAST : 'Not yet';
+}
+function openVault(){
+  if (!vaultBuilt) buildVault();
+  updateVault();
+  D.vault.classList.add('on');
+  sfx('ready');
+}
+function closeVault(){ D.vault.classList.remove('on'); hideTip(); }
+D.vaultClose.addEventListener('click', closeVault);
+D.vault.addEventListener('click', e => { if (e.target === D.vault) closeVault(); });
+D.vaultAscend.addEventListener('click', askAscend);
+
+function askAscend(){
+  const pending = yeastPending();
+  if (pending < 1) return;
+  showModal(
+    '<div class="big">🌱</div><h3>Ascend the bakery?</h3>' +
+    '<p>You will lose all bread, buildings, tower levels and upgrades from this run.<br>' +
+    'You keep every achievement, perk and Starter Yeast.</p>' +
+    '<div class="val">+' + fI(pending) + ' ' + YEAST + '</div>' +
+    '<p style="margin-top:2px;font-size:12px">This run baked <b>' + fB(S.totalBread) + '</b> bread over ' +
+    fmtTime(now() - (S.runStart || S.started)) + '.</p>' +
+    '<div class="row"><button class="wbtn" data-close>Not yet</button>' +
+    '<button class="wbtn primary" id="ascYes">Ascend</button></div>');
+  $('#ascYes').addEventListener('click', () => {
+    const gain = doAscend();
+    hideModal(); closeVault();
+    burst(90);
+    setTimeout(() => showModal(
+      '<div class="big">🧫</div><h3>Ascension ' + fI(S.ascensions) + '</h3>' +
+      '<p>The starter remembers everything. A fresh bakery rises around it.</p>' +
+      '<div class="val">+' + fI(gain) + ' ' + YEAST + '</div>' +
+      '<p style="font-size:12px;margin-top:2px">You now hold <b>' + fI(S.yeast) + '</b> Starter Yeast.</p>' +
+      '<div class="row"><button class="wbtn" data-close>Start baking</button>' +
+      '<button class="wbtn primary" id="ascVault">Open the Vault</button></div>'), 260);
+    setTimeout(() => {
+      const v = $('#ascVault');
+      if (v) v.addEventListener('click', () => { hideModal(); openVault(); });
+    }, 300);
+  });
+}
+
+/* =================================================================
+   9C. AUTOMATION — perks that play a little of the game for you
+   ================================================================= */
+const AUTOS = [
+  {k:'autoClick', n:'Clicker', ic:'🤖', has:() => M.autoClick > 0},
+  {k:'autoBuild', n:'Buildings', ic:'🏭', has:() => M.autoBuild > 0},
+  {k:'autoUp',    n:'Upgrades', ic:'📦', has:() => M.autoUp > 0}
+];
+function renderAutoRow(){
+  const on = AUTOS.filter(a => a.has());
+  D.autoRow.hidden = on.length === 0;
+  if (!on.length) return;
+  D.autoToggles.innerHTML = '';
+  on.forEach(a => {
+    const n = el('div', 'atog' + (S.opt[a.k] ? ' on' : ''), '<i></i>' + a.ic + ' ' + a.n);
+    n.addEventListener('click', () => {
+      S.opt[a.k] = !S.opt[a.k];
+      n.classList.toggle('on', S.opt[a.k]);
+      sfx(S.opt[a.k] ? 'ready' : 'error');
+    });
+    D.autoToggles.appendChild(n);
+  });
+}
+let autoBuyAcc = 0;
+function tickAutoBuy(dt){
+  autoBuyAcc += dt;
+  if (autoBuyAcc < 0.5) return;
+  autoBuyAcc = 0;
+  if (M.autoUp && S.opt.autoUp){
+    for (let i = 0; i < 6; i++){                    // upgrades first: they are always the better buy
+      computeAvail();
+      const u = AVAIL.find(u => S.bread >= upCost(u) * 1.05);
+      if (!u) break;
+      buyUpgrade(u); dirty.ups = true; sfx('upgrade');
+    }
+  }
+  if (M.autoBuild && S.opt.autoBuild){
+    /* best value = most bread per second bought per bread spent, a reserve left over */
+    let bought = 0;
+    for (let i = 0; i < 25; i++){
+      let best = null, bestVal = 0;
+      TOWERS.forEach(t => {
+        const st = S.t[t.id], c = towerCost(t, st.count);
+        if (S.bread < c * 1.4) return;
+        const val = (st._each || t.bps * M.global) / c;
+        if (val > bestVal){ bestVal = val; best = t; }
+      });
+      if (!best) break;
+      const st = S.t[best.id];
+      if (!spend(towerCost(best, st.count))) break;
+      st.count++; st.seen = 1; bought++;
+    }
+    if (bought){ recompute(); dirty.bld = true; }
+  }
+}
+
+/* =================================================================
+   9D. BPS SPARKLINE
+   ================================================================= */
+const SPARK_MAX = 100;
+let sparkAcc = 0;
+function sampleSpark(dt){
+  sparkAcc += dt;
+  if (sparkAcc < 2) return;
+  sparkAcc = 0;
+  S.spark = S.spark || [];
+  S.spark.push(BPS);
+  while (S.spark.length > SPARK_MAX) S.spark.shift();
+}
+function sparkSVG(){
+  const d = (S.spark || []).slice();
+  if (d.length < 2) return '<div class="spark"><span class="lbl">Bread / second</span>' +
+    '<div style="position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:var(--dim2)">' +
+    'collecting…</div></div>';
+  const hi = Math.max.apply(null, d), lo = Math.min.apply(null, d);
+  const W = 100, H = 40, span = Math.max(1e-9, hi - lo);
+  const pts = d.map((v, i) => [ (i / (d.length - 1)) * W, H - ((v - lo) / span) * (H - 6) - 3 ]);
+  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(2) + ' ' + p[1].toFixed(2)).join(' ');
+  const area = line + ' L' + W + ' ' + H + ' L0 ' + H + ' Z';
+  return '<div class="spark"><span class="lbl">Bread / second</span><span class="hi">peak ' + fB(hi) + '</span>' +
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+    '<defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="#ffc463" stop-opacity=".45"/>' +
+    '<stop offset="1" stop-color="#ffc463" stop-opacity="0"/></linearGradient></defs>' +
+    '<path d="' + area + '" fill="url(#spg)"/>' +
+    '<path d="' + line + '" fill="none" stroke="#ffc463" stroke-width="1.4" ' +
+    'stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></div>';
+}
 
 /* =================================================================
    10. SAVE / LOAD
@@ -1645,8 +2682,15 @@ function normalize(o){
   s.t = s.t || {};
   TOWERS.forEach(t => { s.t[t.id] = Object.assign(freshTower(), s.t[t.id] || {}); });
   s.ups = s.ups || {}; s.achs = s.achs || {};
-  ['bread','totalBread','spent','clicks','clickBread','offlineBread','goldenBread','playtime','bestBps','handBest','goldens','prestiges']
+  ['bread','totalBread','spent','clicks','clickBread','offlineBread','goldenBread','playtime','bestBps',
+   'handBest','goldens','prestiges','yeast','yeastEarned','ascensions','totalEver','ascBread','bestRun',
+   'combo','bestCombo','crits','critBread','wanderers','wanderBread','bestClick']
     .forEach(k => { if (typeof s[k] !== 'number' || !isFinite(s[k])) s[k] = 0; });
+  s.perks = s.perks || {}; s.everUps = s.everUps || {};
+  s.spark = Array.isArray(s.spark) ? s.spark.filter(n => isFinite(n)).slice(-SPARK_MAX) : [];
+  if (!s.runStart) s.runStart = s.started || now();
+  /* saves from before ascension existed have no lifetime total — seed it from this run */
+  if (!s.totalEver || s.totalEver < s.totalBread) s.totalEver = s.totalBread;
   if (s.buyAmt !== 'max' && ![1,10,100].includes(s.buyAmt)) s.buyAmt = 1;
   return s;
 }
@@ -1716,21 +2760,29 @@ function showModal(html){
 }
 function hideModal(){ D.modal.classList.remove('on'); }
 D.modal.addEventListener('click', e => { if (e.target === D.modal) hideModal(); });
-addEventListener('keydown', e => { if (e.key === 'Escape') { hideModal(); hideTip(); } });
+addEventListener('keydown', e => { if (e.key === 'Escape') { hideModal(); closeVault(); hideTip(); } });
 
 /* =================================================================
    11. PANELS, TABS, BUY AMOUNT
    ================================================================= */
+function showPane(bar, paneId){
+  bar.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.pane === paneId));
+  const panes = bar.parentElement.querySelector('.panes');
+  panes.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === paneId));
+  dirty.stats = dirty.tow = dirty.asc = true;
+}
 function bindTabs(bar){
   bar.addEventListener('click', e => {
     const b = e.target.closest('.tab'); if (!b) return;
-    bar.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === b));
-    const panes = bar.parentElement.querySelector('.panes');
-    panes.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === b.dataset.pane));
-    dirty.stats = dirty.tow = true;
+    showPane(bar, b.dataset.pane);
   });
 }
 bindTabs($('#leftTabs')); bindTabs($('#rightTabs'));
+$('#optBtn').addEventListener('click', () => {
+  const open = $('#pOpt').classList.contains('on');
+  showPane($('#leftTabs'), open ? 'pStats' : 'pOpt');
+  $('#optBtn').classList.toggle('on', !open);
+});
 
 function toggleSide(side){
   const cls = side === 'l' ? 'l-closed' : 'r-closed';
@@ -1774,7 +2826,7 @@ setInterval(() => {
    12. MAIN LOOP
    ================================================================= */
 let sessionStart = now();
-let lastFrame = performance.now(), accBld = 0, accSlow = 0, accVerySlow = 0, avKey = '';
+let lastFrame = performance.now(), accBld = 0, accSlow = 0, accVerySlow = 0, avKey = '', lastAutoKey = '';
 let hadBuff = false;
 
 function frame(ts){
@@ -1782,6 +2834,9 @@ function frame(ts){
   S.playtime += dt * 1000; S.lastTick = now();
 
   if (BPS > 0) earn(BPS * dt);
+  tickAutoClick(dt);
+  tickAutoBuy(dt);
+  sampleSpark(dt);
 
   const buffOn = S.buffUntil > now();
   if (buffOn !== hadBuff){ hadBuff = buffOn; recompute(); dirty.stats = true; }
@@ -1793,6 +2848,19 @@ function frame(ts){
   D.bps.textContent = fB(BPS);
   D.chipBps.textContent = fB(BPS);
   D.chipClick.textContent = fB(CLICKV);
+
+  /* combo meter drains in real time between recomputes */
+  const cf = comboFrac();
+  COMBOM = comboMult();
+  CLICKV = CLICKBASE * COMBOM;
+  const comboOn = cf > 0 && S.combo > 1;
+  D.combo.classList.toggle('on', comboOn);
+  D.combo.classList.toggle('hot', S.combo >= M.comboCap);
+  if (comboOn){
+    D.comboMult.textContent = '×' + fB(COMBOM);
+    D.comboN.textContent = fI(S.combo);
+    D.comboBar.style.transform = 'scaleX(' + cf.toFixed(3) + ')';
+  }
 
   accBld += dt; accSlow += dt; accVerySlow += dt;
 
@@ -1816,11 +2884,16 @@ function frame(ts){
     updateAchGrid();
     if ($('#pStats').classList.contains('on')) renderStats();
     renderBuildings();
+    if (D.vault.classList.contains('on')) updateVault();
+    const autoKey = [M.autoClick, M.autoBuild, M.autoUp].join(',');
+    if (autoKey !== lastAutoKey){ lastAutoKey = autoKey; renderAutoRow(); }
   }
 
   if (accVerySlow > 1){
     accVerySlow = 0;
     if ($('#pTow').classList.contains('on')) renderTowersTab();
+    if ($('#pAsc').classList.contains('on')) renderAscension();
+    else if (dirty.asc){ dirty.asc = false; D.ascCnt.textContent = fI(perkCountFn()); }
   }
 
   requestAnimationFrame(frame);
@@ -1849,12 +2922,36 @@ function boot(){
   renderUpgrades();
   renderStats();
   renderTowersTab();
+  renderAscension();
+  renderAutoRow();
+  lastAutoKey = [M.autoClick, M.autoBuild, M.autoUp].join(',');
   checkAchievements();
-  scheduleGolden();
+  scheduleWanderer();
 
   if (!had) setTimeout(() => toast('🍞','Welcome to Bread Clicker','Click the loaf to bake your first bread','gold'), 700);
   requestAnimationFrame(t => { lastFrame = t; frame(t); });
 }
+
+/* ------------------------- keyboard ---------------------------- */
+addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea')) return;
+  const k = e.key.toLowerCase();
+  if (e.key === ' ' || e.key === 'Enter'){
+    if (document.activeElement && document.activeElement.tagName === 'BUTTON' && e.key === 'Enter') return;
+    e.preventDefault(); doClick(null);
+    D.breadBtn.animate([{transform:'scale(1)'},{transform:'scale(.94)'},{transform:'scale(1)'}],
+      {duration:200, easing:'cubic-bezier(.2,.9,.25,1)'});
+    return;
+  }
+  if (k >= '1' && k <= '4'){
+    const b = $('#buySeg').querySelectorAll('button')[+k - 1];
+    if (b) b.click();
+  }
+  else if (k === 'q') toggleSide('l');
+  else if (k === 'e') toggleSide('r');
+  else if (k === 'v'){ D.vault.classList.contains('on') ? closeVault() : openVault(); }
+  else if (k === 's'){ save(); sfx('ready'); toast('💾','Saved','Your bakery is safe'); }
+});
 
 setInterval(save, 20000);
 addEventListener('beforeunload', save);
